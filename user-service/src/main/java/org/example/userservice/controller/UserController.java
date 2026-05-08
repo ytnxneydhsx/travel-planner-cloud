@@ -1,7 +1,7 @@
 package org.example.userservice.controller;
 
 import jakarta.validation.Valid;
-import org.example.userservice.common.ApiResponse;
+import org.example.common.web.ApiResponse;
 import org.example.userservice.dto.UserLoginRequest;
 import org.example.userservice.dto.UserLoginResponse;
 import org.example.userservice.dto.UserRegisterRequest;

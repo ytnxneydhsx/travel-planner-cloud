@@ -69,3 +69,8 @@ user-service
 - 当前先完成用户注册、登录、信息查询、JWT 签发
 - 当前不接入统一网关鉴权
 - 当前不实现复杂权限体系
+
+## 最新说明
+
+- 公共返回对象 `ApiResponse` 已抽取到 `common-web` 模块
+- 当前服务保留自己的 `GlobalExceptionHandler`，用于后续扩展特殊异常处理

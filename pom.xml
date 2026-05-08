@@ -17,6 +17,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>common-web</module>
         <module>destination-service</module>
         <module>user-service</module>
     </modules>

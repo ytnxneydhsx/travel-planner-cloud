@@ -2,7 +2,7 @@ package org.example.destinationservice.controller;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import org.example.destinationservice.common.ApiResponse;
+import org.example.common.web.ApiResponse;
 import org.example.destinationservice.dto.DestinationCreateRequest;
 import org.example.destinationservice.dto.DestinationResponse;
 import org.example.destinationservice.dto.DestinationUpdateRequest;

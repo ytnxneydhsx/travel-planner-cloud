@@ -68,3 +68,8 @@ destination-service
 - 先完成景点 CRUD 主线
 - `region_code` 存在 `destinations` 表中
 - 地区名称由本地 JSON 解析，不单独建 `regions` 表
+
+## 最新说明
+
+- 公共返回对象 `ApiResponse` 已抽取到 `common-web` 模块
+- 当前服务保留自己的 `GlobalExceptionHandler`，用于后续扩展特殊异常处理
