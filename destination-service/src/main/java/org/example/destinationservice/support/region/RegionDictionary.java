@@ -13,9 +13,13 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class RegionDictionary {
+
+    private static final Logger log = LoggerFactory.getLogger(RegionDictionary.class);
 
     private final ObjectMapper objectMapper;
 
@@ -42,7 +46,9 @@ public class RegionDictionary {
                 collectRegionItems(regionItem, loadedRegionMap);
             }
             this.regionMap = Collections.unmodifiableMap(loadedRegionMap);
+            log.info("Region dictionary loaded successfully, size={}", this.regionMap.size());
         } catch (IOException exception) {
+            log.error("Failed to load region dictionary from resource: {}", regionDictionaryResource, exception);
             throw new IllegalStateException("Failed to load region dictionary.", exception);
         }
     }

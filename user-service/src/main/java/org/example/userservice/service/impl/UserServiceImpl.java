@@ -10,11 +10,15 @@ import org.example.userservice.mapper.UserMapper;
 import org.example.userservice.service.UserService;
 import org.example.userservice.support.jwt.JwtTokenProvider;
 import org.example.userservice.support.password.PasswordEncoderSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserMapper userMapper;
 
@@ -35,6 +39,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse register(UserRegisterRequest request) {
         User existingUser = userMapper.selectByUsername(request.getUsername());
         if (existingUser != null) {
+            log.warn("User registration rejected because username already exists: {}", request.getUsername());
             throw new BusinessException(HttpStatus.CONFLICT, "Username already exists.");
         }
 
@@ -53,9 +58,11 @@ public class UserServiceImpl implements UserService {
     public UserLoginResponse login(UserLoginRequest request) {
         User user = userMapper.selectByUsername(request.getUsername());
         if (user == null || !passwordEncoderSupport.matches(request.getPassword(), user.getPassword())) {
+            log.warn("User login rejected due to invalid credentials: {}", request.getUsername());
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Username or password is invalid.");
         }
         if (user.getStatus() != null && user.getStatus() == 0) {
+            log.warn("User login rejected because account is disabled: userId={}", user.getId());
             throw new BusinessException(HttpStatus.FORBIDDEN, "User is disabled.");
         }
 

@@ -19,6 +19,8 @@ import org.example.itineraryservice.entity.ItineraryDestination;
 import org.example.itineraryservice.mapper.ItineraryDestinationMapper;
 import org.example.itineraryservice.mapper.ItineraryMapper;
 import org.example.itineraryservice.service.ItineraryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 public class ItineraryServiceImpl implements ItineraryService {
+
+    private static final Logger log = LoggerFactory.getLogger(ItineraryServiceImpl.class);
 
     private final ItineraryMapper itineraryMapper;
 
@@ -118,6 +122,8 @@ public class ItineraryServiceImpl implements ItineraryService {
                 itineraryId,
                 request.getDestinationId());
         if (existing != null) {
+            log.warn("Duplicate destination add rejected before insert: itineraryId={}, destinationId={}",
+                    itineraryId, request.getDestinationId());
             throw new BusinessException(CONFLICT, "Destination already exists in itinerary.");
         }
 
@@ -131,6 +137,8 @@ public class ItineraryServiceImpl implements ItineraryService {
                     .sortOrder((maxSortOrder == null ? 0 : maxSortOrder) + 1)
                     .build());
         } catch (DuplicateKeyException exception) {
+            log.warn("Duplicate destination add rejected by unique index: itineraryId={}, destinationId={}",
+                    itineraryId, request.getDestinationId(), exception);
             throw new BusinessException(CONFLICT, "Destination already exists in itinerary.");
         }
 
@@ -144,6 +152,8 @@ public class ItineraryServiceImpl implements ItineraryService {
                 itineraryId,
                 destinationId);
         if (existing == null) {
+            log.warn("Remove destination rejected because association does not exist: itineraryId={}, destinationId={}",
+                    itineraryId, destinationId);
             throw new BusinessException(NOT_FOUND, "Destination does not exist in itinerary.");
         }
 
@@ -158,6 +168,7 @@ public class ItineraryServiceImpl implements ItineraryService {
 
         Set<Long> uniqueDestinationIds = new HashSet<>(destinationIds);
         if (uniqueDestinationIds.size() != destinationIds.size()) {
+            log.warn("Itinerary destination ids must be unique: {}", destinationIds);
             throw new BusinessException(BAD_REQUEST, "Destination ids must be unique.");
         }
     }
@@ -175,6 +186,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     private DestinationSummary requireDestination(Long destinationId) {
         DestinationSummary destination = findDestination(destinationId);
         if (destination == null) {
+            log.warn("Destination not found when validating itinerary relation: destinationId={}", destinationId);
             throw new BusinessException(NOT_FOUND, "Destination not found.");
         }
         return destination;
@@ -190,6 +202,7 @@ public class ItineraryServiceImpl implements ItineraryService {
         } catch (FeignException.NotFound exception) {
             return null;
         } catch (FeignException exception) {
+            log.error("Destination service request failed: destinationId={}", destinationId, exception);
             throw new BusinessException(BAD_GATEWAY, "Destination service request failed.");
         }
     }
@@ -236,9 +249,13 @@ public class ItineraryServiceImpl implements ItineraryService {
     private Itinerary requireOwnedItinerary(Long itineraryId, Long currentUserId) {
         Itinerary itinerary = itineraryMapper.selectById(itineraryId);
         if (itinerary == null) {
+            log.warn("Itinerary not found when checking ownership: itineraryId={}, currentUserId={}",
+                    itineraryId, currentUserId);
             throw new BusinessException(NOT_FOUND, "Itinerary not found.");
         }
         if (!itinerary.getUserId().equals(currentUserId)) {
+            log.warn("Forbidden itinerary access rejected: itineraryId={}, ownerUserId={}, currentUserId={}",
+                    itineraryId, itinerary.getUserId(), currentUserId);
             throw new BusinessException(FORBIDDEN, "Forbidden.");
         }
         return itinerary;
