@@ -239,6 +239,8 @@
 
 ### 8. 更新接口允许“空更新请求”进入动态 SQL
 
+当前状态：已完成
+
 问题描述：
 
 - `DestinationUpdateRequest` 和 `ItineraryUpdateRequest` 的字段全部可空。
@@ -256,6 +258,12 @@
 
 - 用户输入参数必须做有效性校验。
 - Web 层应拦住明显不合法请求，而不是把错误放大到数据库层。
+
+本次修复：
+
+- `DestinationUpdateRequest` 已新增类级校验逻辑，要求更新请求至少提供一个可更新字段。
+- `ItineraryUpdateRequest` 已新增类级校验逻辑，要求更新请求至少提供一个可更新字段。
+- 两个更新接口继续通过 `@Valid` 进入校验，空请求会在 Web 层直接返回参数错误，不再进入 MyBatis 动态 SQL。
 
 ## 问题待确认
 
