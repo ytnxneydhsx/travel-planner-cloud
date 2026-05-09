@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import org.example.common.web.ApiResponse;
 import org.example.destinationservice.dto.DestinationCreateRequest;
+import org.example.destinationservice.dto.DestinationBatchQueryRequest;
 import org.example.destinationservice.dto.DestinationResponse;
 import org.example.destinationservice.dto.DestinationUpdateRequest;
 import org.example.destinationservice.service.DestinationService;
@@ -45,6 +46,12 @@ public class DestinationController {
             throw new ResponseStatusException(NOT_FOUND, "Destination not found.");
         }
         return ApiResponse.success(response);
+    }
+
+    @PostMapping("/query")
+    public ApiResponse<List<DestinationResponse>> listByIds(
+            @Valid @RequestBody DestinationBatchQueryRequest request) {
+        return ApiResponse.success(destinationService.listByIds(request.getDestinationIds()));
     }
 
     @GetMapping

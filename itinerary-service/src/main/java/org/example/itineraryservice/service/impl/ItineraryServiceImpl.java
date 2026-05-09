@@ -1,13 +1,10 @@
 package org.example.itineraryservice.service.impl;
 
-import feign.FeignException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.example.common.web.ApiResponse;
 import org.example.common.web.BusinessException;
-import org.example.itineraryservice.client.DestinationClient;
 import org.example.itineraryservice.client.dto.DestinationSummary;
 import org.example.itineraryservice.dto.ItineraryCreateRequest;
 import org.example.itineraryservice.dto.ItineraryDestinationAddRequest;
@@ -16,6 +13,7 @@ import org.example.itineraryservice.dto.ItineraryResponse;
 import org.example.itineraryservice.dto.ItineraryUpdateRequest;
 import org.example.itineraryservice.entity.Itinerary;
 import org.example.itineraryservice.entity.ItineraryDestination;
+import org.example.itineraryservice.manager.DestinationManager;
 import org.example.itineraryservice.mapper.ItineraryDestinationMapper;
 import org.example.itineraryservice.mapper.ItineraryMapper;
 import org.example.itineraryservice.service.ItineraryService;
@@ -25,7 +23,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -40,15 +37,15 @@ public class ItineraryServiceImpl implements ItineraryService {
 
     private final ItineraryDestinationMapper itineraryDestinationMapper;
 
-    private final DestinationClient destinationClient;
+    private final DestinationManager destinationManager;
 
     public ItineraryServiceImpl(
             ItineraryMapper itineraryMapper,
             ItineraryDestinationMapper itineraryDestinationMapper,
-            DestinationClient destinationClient) {
+            DestinationManager destinationManager) {
         this.itineraryMapper = itineraryMapper;
         this.itineraryDestinationMapper = itineraryDestinationMapper;
-        this.destinationClient = destinationClient;
+        this.destinationManager = destinationManager;
     }
 
     @Override
@@ -127,7 +124,7 @@ public class ItineraryServiceImpl implements ItineraryService {
             throw new BusinessException(CONFLICT, "Destination already exists in itinerary.");
         }
 
-        requireDestination(request.getDestinationId());
+        destinationManager.getRequiredById(request.getDestinationId());
         Integer maxSortOrder = itineraryDestinationMapper.selectMaxSortOrderByItineraryId(itineraryId);
 
         try {
@@ -174,37 +171,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     private void validateDestinationsExist(List<Long> destinationIds) {
-        if (destinationIds == null || destinationIds.isEmpty()) {
-            return;
-        }
-
-        for (Long destinationId : destinationIds) {
-            requireDestination(destinationId);
-        }
-    }
-
-    private DestinationSummary requireDestination(Long destinationId) {
-        DestinationSummary destination = findDestination(destinationId);
-        if (destination == null) {
-            log.warn("Destination not found when validating itinerary relation: destinationId={}", destinationId);
-            throw new BusinessException(NOT_FOUND, "Destination not found.");
-        }
-        return destination;
-    }
-
-    private DestinationSummary findDestination(Long destinationId) {
-        try {
-            ApiResponse<DestinationSummary> response = destinationClient.getById(destinationId);
-            if (response == null || !response.isSuccess()) {
-                return null;
-            }
-            return response.getData();
-        } catch (FeignException.NotFound exception) {
-            return null;
-        } catch (FeignException exception) {
-            log.error("Destination service request failed: destinationId={}", destinationId, exception);
-            throw new BusinessException(BAD_GATEWAY, "Destination service request failed.");
-        }
+        destinationManager.validateRequiredIds(destinationIds);
     }
 
     private ItineraryResponse toResponse(Itinerary itinerary) {
@@ -217,8 +184,14 @@ public class ItineraryServiceImpl implements ItineraryService {
             itineraryDestinations = Collections.emptyList();
         }
 
-        List<ItineraryDestinationResponse> destinations = itineraryDestinations.stream()
-                .map(this::toDestinationResponse)
+        List<Long> destinationIds = itineraryDestinations.stream()
+                .map(ItineraryDestination::getDestinationId)
+                .distinct()
+                .toList();
+        java.util.Map<Long, DestinationSummary> destinationMap = destinationManager.getByIds(destinationIds);
+
+        List<ItineraryDestinationResponse> destinationResponses = itineraryDestinations.stream()
+                .map(itineraryDestination -> toDestinationResponse(itineraryDestination, destinationMap))
                 .toList();
 
         return ItineraryResponse.builder()
@@ -226,14 +199,16 @@ public class ItineraryServiceImpl implements ItineraryService {
                 .userId(itinerary.getUserId())
                 .title(itinerary.getTitle())
                 .description(itinerary.getDescription())
-                .destinations(destinations)
+                .destinations(destinationResponses)
                 .createdAt(itinerary.getGmtCreate())
                 .updatedAt(itinerary.getGmtModified())
                 .build();
     }
 
-    private ItineraryDestinationResponse toDestinationResponse(ItineraryDestination itineraryDestination) {
-        DestinationSummary destination = findDestination(itineraryDestination.getDestinationId());
+    private ItineraryDestinationResponse toDestinationResponse(
+            ItineraryDestination itineraryDestination,
+            java.util.Map<Long, DestinationSummary> destinationMap) {
+        DestinationSummary destination = destinationMap.get(itineraryDestination.getDestinationId());
 
         return ItineraryDestinationResponse.builder()
                 .destinationId(itineraryDestination.getDestinationId())

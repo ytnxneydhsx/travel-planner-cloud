@@ -40,6 +40,8 @@ itinerary-service
    │  │           ├─ entity
    │  │           │  ├─ Itinerary.java
    │  │           │  └─ ItineraryDestination.java
+   │  │           ├─ manager
+   │  │           │  └─ DestinationManager.java
    │  │           ├─ mapper
    │  │           │  ├─ ItineraryDestinationMapper.java
    │  │           │  └─ ItineraryMapper.java
@@ -79,6 +81,7 @@ itinerary-service
 ## 结构说明
 
 - `client`：通过 OpenFeign 调用 `destination-service`
+- `manager`：封装远程调用、返回值判断和异常翻译
 - `controller`：对外提供 HTTP 接口
 - `dto`：请求和响应模型
 - `entity`：数据库实体对象
@@ -89,5 +92,6 @@ itinerary-service
 ## 当前实现边界
 
 - 创建行程时校验目的地是否存在
+- 创建行程和行程详情回填已改为批量查询目的地，避免逐条远程调用
 - 行程详情中只回填目的地摘要信息，不做本地快照
 - 当前仅实现基于 `X-User-Id` 的临时归属校验，后续应由网关解析 JWT 后透传用户信息

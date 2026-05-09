@@ -46,6 +46,13 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    public List<DestinationResponse> listByIds(List<Long> ids) {
+        return destinationMapper.selectByIds(ids).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
     public List<DestinationResponse> searchByNamePrefix(String namePrefix) {
         return destinationMapper.selectByNamePrefix(namePrefix).stream()
                 .map(this::toResponse)

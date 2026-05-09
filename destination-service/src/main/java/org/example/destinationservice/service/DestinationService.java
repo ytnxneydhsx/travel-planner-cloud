@@ -11,6 +11,8 @@ public interface DestinationService {
 
     DestinationResponse getById(Long id);
 
+    List<DestinationResponse> listByIds(List<Long> ids);
+
     List<DestinationResponse> searchByNamePrefix(String namePrefix);
 
     List<DestinationResponse> searchByKeyword(String keyword);

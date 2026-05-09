@@ -269,6 +269,8 @@
 
 ### 9. 配置文件中存在弱默认值
 
+当前状态：跳过
+
 问题描述：
 
 - 三个服务的数据库密码默认值都是 `123456`。
@@ -281,11 +283,14 @@
 - `user-service/src/main/resources/application.properties:21`
 - `itinerary-service/src/main/resources/application.properties:9`
 
-说明：
+跳过说明：
 
-这明显低于生产安全基线，但阿里手册公开条目里没有我当前核对到的“禁止弱默认口令 / 默认密钥”逐条硬规定，因此先标记为“待确认但应尽快处理”。
+- 本轮不处理该问题。
+- 如需回收弱默认值，后续再单独调整配置基线和本地启动说明。
 
 ### 10. Feign 远程调用直接放在 Service 层，未单独封装
+
+当前状态：已完成
 
 问题描述：
 
@@ -298,9 +303,12 @@
 - `itinerary-service/src/main/java/org/example/itineraryservice/service/impl/ItineraryServiceImpl.java:156`
 - `itinerary-service/src/main/java/org/example/itineraryservice/client/DestinationClient.java:9`
 
-说明：
+本次修复：
 
-阿里应用分层更推荐把第三方或外部服务调用封装到专门层中，用于统一处理返回值和异常。当前实现并非一定错误，但从规范角度看不够收敛。
+- `itinerary-service` 已新增 `manager/DestinationManager`，统一封装目的地服务远程调用。
+- `DestinationManager` 负责调用 `DestinationClient`、判断返回值、翻译 `FeignException`，并对外提供“查得到返回对象、查不到返回空、必须存在则抛业务异常”的统一方法。
+- `ItineraryServiceImpl` 已移除直接 Feign 调用细节，收敛为纯业务编排和资源归属校验。
+- `destination-service` 已补充批量查询接口，`itinerary-service` 在创建校验和行程详情回填时已改为批量远程调用，避免逐条请求下游服务。
 
 ## 仅供参考
 

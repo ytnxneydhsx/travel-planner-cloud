@@ -73,3 +73,4 @@ destination-service
 
 - 公共返回对象 `ApiResponse` 已抽取到 `common-web` 模块
 - 当前服务保留自己的 `GlobalExceptionHandler`，用于后续扩展特殊异常处理
+- 已新增内部批量查询接口 `POST /destinations/query`，供其他服务一次性获取一组目的地信息

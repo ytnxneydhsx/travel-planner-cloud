@@ -53,6 +53,28 @@ public interface DestinationMapper {
     Destination selectById(@Param("id") Long id);
 
     @Select("""
+            <script>
+            SELECT
+                id,
+                name,
+                region_code,
+                address,
+                summary,
+                description,
+                cover_image_url,
+                status,
+                gmt_create,
+                gmt_modified
+            FROM destination
+            WHERE id IN
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            </script>
+            """)
+    List<Destination> selectByIds(@Param("ids") List<Long> ids);
+
+    @Select("""
             SELECT
                 id,
                 name,
