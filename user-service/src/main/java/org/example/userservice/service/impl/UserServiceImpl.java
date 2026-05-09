@@ -1,6 +1,7 @@
 package org.example.userservice.service.impl;
 
 import org.example.common.web.BusinessException;
+import org.example.userservice.constant.UserConstants;
 import org.example.userservice.dto.UserLoginRequest;
 import org.example.userservice.dto.UserLoginResponse;
 import org.example.userservice.dto.UserRegisterRequest;
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
                 .username(request.getUsername())
                 .password(passwordEncoderSupport.encode(request.getPassword()))
                 .nickname(request.getNickname())
-                .status(request.getStatus() == null ? 1 : request.getStatus())
+                .status(UserConstants.resolveStatusOrDefault(request.getStatus()))
                 .build();
 
         userMapper.insert(user);
@@ -61,7 +62,7 @@ public class UserServiceImpl implements UserService {
             log.warn("User login rejected due to invalid credentials: {}", request.getUsername());
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Username or password is invalid.");
         }
-        if (user.getStatus() != null && user.getStatus() == 0) {
+        if (UserConstants.isDisabledStatus(user.getStatus())) {
             log.warn("User login rejected because account is disabled: userId={}", user.getId());
             throw new BusinessException(HttpStatus.FORBIDDEN, "User is disabled.");
         }
@@ -69,7 +70,7 @@ public class UserServiceImpl implements UserService {
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         return UserLoginResponse.builder()
                 .accessToken(accessToken)
-                .tokenType("Bearer")
+                .tokenType(UserConstants.TOKEN_TYPE_BEARER)
                 .expiresIn(jwtTokenProvider.getExpireSeconds())
                 .user(toResponse(user))
                 .build();

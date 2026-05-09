@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.userservice.constant.UserConstants;
 
 @Data
 @Builder
@@ -26,7 +27,7 @@ public class UserRegisterRequest {
     @Size(max = 100, message = "nickname length must be less than or equal to 100.")
     private String nickname;
 
-    @Min(value = 0, message = "status must be 0 or 1.")
-    @Max(value = 1, message = "status must be 0 or 1.")
+    @Min(value = UserConstants.USER_STATUS_DISABLED, message = "status must be 0 or 1.")
+    @Max(value = UserConstants.USER_STATUS_ENABLED, message = "status must be 0 or 1.")
     private Integer status;
 }
