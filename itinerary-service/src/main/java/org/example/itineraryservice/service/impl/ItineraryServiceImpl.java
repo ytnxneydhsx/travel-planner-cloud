@@ -19,6 +19,7 @@ import org.example.itineraryservice.mapper.ItineraryDestinationMapper;
 import org.example.itineraryservice.mapper.ItineraryMapper;
 import org.example.itineraryservice.service.ItineraryService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
@@ -46,8 +47,10 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ItineraryResponse create(Long currentUserId, ItineraryCreateRequest request) {
         validateDestinationIds(request.getDestinationIds());
+        validateDestinationsExist(request.getDestinationIds());
 
         Itinerary itinerary = Itinerary.builder()
                 .userId(currentUserId)
@@ -61,7 +64,6 @@ public class ItineraryServiceImpl implements ItineraryService {
         if (destinationIds != null) {
             for (int i = 0; i < destinationIds.size(); i++) {
                 Long destinationId = destinationIds.get(i);
-                requireDestination(destinationId);
                 itineraryDestinationMapper.insert(ItineraryDestination.builder()
                         .itineraryId(itinerary.getId())
                         .destinationId(destinationId)
@@ -97,6 +99,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteById(Long id, Long currentUserId) {
         requireOwnedItinerary(id, currentUserId);
         itineraryDestinationMapper.deleteByItineraryId(id);
@@ -150,6 +153,16 @@ public class ItineraryServiceImpl implements ItineraryService {
         Set<Long> uniqueDestinationIds = new HashSet<>(destinationIds);
         if (uniqueDestinationIds.size() != destinationIds.size()) {
             throw new ResponseStatusException(BAD_REQUEST, "Destination ids must be unique.");
+        }
+    }
+
+    private void validateDestinationsExist(List<Long> destinationIds) {
+        if (destinationIds == null || destinationIds.isEmpty()) {
+            return;
+        }
+
+        for (Long destinationId : destinationIds) {
+            requireDestination(destinationId);
         }
     }
 
