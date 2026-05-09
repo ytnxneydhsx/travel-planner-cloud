@@ -19,6 +19,7 @@
     <modules>
         <module>common-web</module>
         <module>destination-service</module>
+        <module>gateway-service</module>
         <module>itinerary-service</module>
         <module>user-service</module>
     </modules>
