@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java MySQL"
+  short_description: "检查建表、索引、SQL 和 ORM 映射"
+  default_prompt: "使用 $alibaba-java-mysql 检查这个 SQL 或表设计。"
+policy:
+  allow_implicit_invocation: true

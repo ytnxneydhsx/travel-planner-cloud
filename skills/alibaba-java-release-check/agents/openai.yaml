@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java 完成检查"
+  short_description: "交付前汇总检查阿里 Java 强制规约"
+  default_prompt: "使用 $alibaba-java-release-check 在完成前检查这次 Java 变更。"
+policy:
+  allow_implicit_invocation: true

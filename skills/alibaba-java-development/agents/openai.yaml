@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java 开发总控"
+  short_description: "按开发阶段路由阿里 Java 强制规约检查"
+  default_prompt: "使用 $alibaba-java-development 按阿里 Java 强制规约开发这个功能。"
+policy:
+  allow_implicit_invocation: true

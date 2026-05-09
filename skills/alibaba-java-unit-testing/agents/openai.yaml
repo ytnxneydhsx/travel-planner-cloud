@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java 单元测试"
+  short_description: "检查 Java 单元测试的强制规约要求"
+  default_prompt: "使用 $alibaba-java-unit-testing 为这个变更补充单元测试。"
+policy:
+  allow_implicit_invocation: true

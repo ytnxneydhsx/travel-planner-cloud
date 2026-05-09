@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java 安全规约"
+  short_description: "检查权限、输入、脱敏和注入防护"
+  default_prompt: "使用 $alibaba-java-security 检查这个接口的安全性。"
+policy:
+  allow_implicit_invocation: true

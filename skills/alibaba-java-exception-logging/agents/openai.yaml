@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java 异常日志"
+  short_description: "检查异常处理、事务回滚和日志输出"
+  default_prompt: "使用 $alibaba-java-exception-logging 检查异常处理和日志。"
+policy:
+  allow_implicit_invocation: true

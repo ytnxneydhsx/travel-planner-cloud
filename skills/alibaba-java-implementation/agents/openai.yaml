@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java 编码实现"
+  short_description: "检查 Java 业务代码的强制编码规约"
+  default_prompt: "使用 $alibaba-java-implementation 按阿里规范实现代码。"
+policy:
+  allow_implicit_invocation: true

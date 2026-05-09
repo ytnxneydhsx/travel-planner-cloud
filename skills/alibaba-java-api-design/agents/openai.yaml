@@ -1,0 +1,6 @@
+interface:
+  display_name: "阿里 Java 接口设计"
+  short_description: "检查命名、分层、接口契约和依赖坐标"
+  default_prompt: "使用 $alibaba-java-api-design 检查这个 Java 模块设计。"
+policy:
+  allow_implicit_invocation: true
