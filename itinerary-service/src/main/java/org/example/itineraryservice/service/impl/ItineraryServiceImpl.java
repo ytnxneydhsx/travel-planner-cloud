@@ -18,6 +18,7 @@ import org.example.itineraryservice.entity.ItineraryDestination;
 import org.example.itineraryservice.mapper.ItineraryDestinationMapper;
 import org.example.itineraryservice.mapper.ItineraryMapper;
 import org.example.itineraryservice.service.ItineraryService;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -107,6 +108,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ItineraryResponse addDestination(
             Long itineraryId,
             Long currentUserId,
@@ -122,11 +124,15 @@ public class ItineraryServiceImpl implements ItineraryService {
         requireDestination(request.getDestinationId());
         Integer maxSortOrder = itineraryDestinationMapper.selectMaxSortOrderByItineraryId(itineraryId);
 
-        itineraryDestinationMapper.insert(ItineraryDestination.builder()
-                .itineraryId(itineraryId)
-                .destinationId(request.getDestinationId())
-                .sortOrder((maxSortOrder == null ? 0 : maxSortOrder) + 1)
-                .build());
+        try {
+            itineraryDestinationMapper.insert(ItineraryDestination.builder()
+                    .itineraryId(itineraryId)
+                    .destinationId(request.getDestinationId())
+                    .sortOrder((maxSortOrder == null ? 0 : maxSortOrder) + 1)
+                    .build());
+        } catch (DuplicateKeyException exception) {
+            throw new ResponseStatusException(CONFLICT, "Destination already exists in itinerary.");
+        }
 
         return getById(itineraryId, currentUserId);
     }
