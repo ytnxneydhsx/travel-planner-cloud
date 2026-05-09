@@ -23,6 +23,12 @@ public abstract class BaseGlobalExceptionHandler {
                 .body(ApiResponse.failure("Request validation failed.", errorMessages));
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException exception) {
+        return ResponseEntity.status(exception.getStatusCode())
+                .body(ApiResponse.failure(exception.getMessage()));
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResponse<Void>> handleResponseStatusException(ResponseStatusException exception) {
         return ResponseEntity.status(exception.getStatusCode())

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.example.common.web.ApiResponse;
+import org.example.common.web.BusinessException;
 import org.example.itineraryservice.client.DestinationClient;
 import org.example.itineraryservice.client.dto.DestinationSummary;
 import org.example.itineraryservice.dto.ItineraryCreateRequest;
@@ -21,7 +22,6 @@ import org.example.itineraryservice.service.ItineraryService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -118,7 +118,7 @@ public class ItineraryServiceImpl implements ItineraryService {
                 itineraryId,
                 request.getDestinationId());
         if (existing != null) {
-            throw new ResponseStatusException(CONFLICT, "Destination already exists in itinerary.");
+            throw new BusinessException(CONFLICT, "Destination already exists in itinerary.");
         }
 
         requireDestination(request.getDestinationId());
@@ -131,7 +131,7 @@ public class ItineraryServiceImpl implements ItineraryService {
                     .sortOrder((maxSortOrder == null ? 0 : maxSortOrder) + 1)
                     .build());
         } catch (DuplicateKeyException exception) {
-            throw new ResponseStatusException(CONFLICT, "Destination already exists in itinerary.");
+            throw new BusinessException(CONFLICT, "Destination already exists in itinerary.");
         }
 
         return getById(itineraryId, currentUserId);
@@ -144,7 +144,7 @@ public class ItineraryServiceImpl implements ItineraryService {
                 itineraryId,
                 destinationId);
         if (existing == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Destination does not exist in itinerary.");
+            throw new BusinessException(NOT_FOUND, "Destination does not exist in itinerary.");
         }
 
         itineraryDestinationMapper.deleteByItineraryIdAndDestinationId(itineraryId, destinationId);
@@ -158,7 +158,7 @@ public class ItineraryServiceImpl implements ItineraryService {
 
         Set<Long> uniqueDestinationIds = new HashSet<>(destinationIds);
         if (uniqueDestinationIds.size() != destinationIds.size()) {
-            throw new ResponseStatusException(BAD_REQUEST, "Destination ids must be unique.");
+            throw new BusinessException(BAD_REQUEST, "Destination ids must be unique.");
         }
     }
 
@@ -175,7 +175,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     private DestinationSummary requireDestination(Long destinationId) {
         DestinationSummary destination = findDestination(destinationId);
         if (destination == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Destination not found.");
+            throw new BusinessException(NOT_FOUND, "Destination not found.");
         }
         return destination;
     }
@@ -190,7 +190,7 @@ public class ItineraryServiceImpl implements ItineraryService {
         } catch (FeignException.NotFound exception) {
             return null;
         } catch (FeignException exception) {
-            throw new ResponseStatusException(BAD_GATEWAY, "Destination service request failed.");
+            throw new BusinessException(BAD_GATEWAY, "Destination service request failed.");
         }
     }
 
@@ -236,10 +236,10 @@ public class ItineraryServiceImpl implements ItineraryService {
     private Itinerary requireOwnedItinerary(Long itineraryId, Long currentUserId) {
         Itinerary itinerary = itineraryMapper.selectById(itineraryId);
         if (itinerary == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Itinerary not found.");
+            throw new BusinessException(NOT_FOUND, "Itinerary not found.");
         }
         if (!itinerary.getUserId().equals(currentUserId)) {
-            throw new ResponseStatusException(FORBIDDEN, "Forbidden.");
+            throw new BusinessException(FORBIDDEN, "Forbidden.");
         }
         return itinerary;
     }

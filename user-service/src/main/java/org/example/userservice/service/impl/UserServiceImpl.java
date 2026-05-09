@@ -1,5 +1,6 @@
 package org.example.userservice.service.impl;
 
+import org.example.common.web.BusinessException;
 import org.example.userservice.dto.UserLoginRequest;
 import org.example.userservice.dto.UserLoginResponse;
 import org.example.userservice.dto.UserRegisterRequest;
@@ -11,7 +12,6 @@ import org.example.userservice.support.jwt.JwtTokenProvider;
 import org.example.userservice.support.password.PasswordEncoderSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse register(UserRegisterRequest request) {
         User existingUser = userMapper.selectByUsername(request.getUsername());
         if (existingUser != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists.");
+            throw new BusinessException(HttpStatus.CONFLICT, "Username already exists.");
         }
 
         User user = User.builder()
@@ -53,10 +53,10 @@ public class UserServiceImpl implements UserService {
     public UserLoginResponse login(UserLoginRequest request) {
         User user = userMapper.selectByUsername(request.getUsername());
         if (user == null || !passwordEncoderSupport.matches(request.getPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Username or password is invalid.");
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Username or password is invalid.");
         }
         if (user.getStatus() != null && user.getStatus() == 0) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User is disabled.");
+            throw new BusinessException(HttpStatus.FORBIDDEN, "User is disabled.");
         }
 
         String accessToken = jwtTokenProvider.generateAccessToken(user);

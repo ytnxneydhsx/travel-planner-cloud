@@ -119,7 +119,7 @@
 - 当前实现的并发兜底主要依赖数据库唯一索引和异常翻译。
 - 如果后续还要支持更复杂的顺序调整、批量插入、批量替换等场景，仍需重新评估并发控制策略。
 
-### 4. Service 层直接抛 HTTP 异常，分层职责混乱
+### 4. Service 层直接抛 HTTP 异常，分层职责混乱（已开始修复）
 
 问题描述：
 
@@ -141,6 +141,18 @@
 
 - 应用分层中，Web 层负责对外协议转换。
 - 应用内部更适合使用业务异常，而不是直接抛 HTTP 状态异常。
+
+本次已完成的修复：
+
+- `common-web` 已新增统一业务异常 `BusinessException`，用于在应用内部表达业务失败。
+- `common-web` 的全局异常处理器已补充 `BusinessException` 转换逻辑，由 Web 层统一负责将业务异常映射为 HTTP 响应。
+- `user-service` 的 `UserServiceImpl` 已不再直接抛 `ResponseStatusException`，改为抛出 `BusinessException`。
+- `itinerary-service` 的 `ItineraryServiceImpl` 已不再直接抛 `ResponseStatusException`，改为抛出 `BusinessException`。
+
+当前仍然存在的边界：
+
+- 当前仍有部分 Controller 层使用 `ResponseStatusException`，这是当前阶段允许的过渡状态，因为对外协议转换仍在 Web 层。
+- 后续如果继续统一异常风格，可以进一步将 Controller 层的错误分支也逐步收敛到统一异常模型。
 
 ## 建议修改
 
