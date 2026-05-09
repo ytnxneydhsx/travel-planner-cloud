@@ -1,16 +1,18 @@
 package org.example.userservice.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.example.common.web.ApiResponse;
+import org.example.common.web.RequestHeaderNames;
 import org.example.userservice.dto.UserLoginRequest;
 import org.example.userservice.dto.UserLoginResponse;
 import org.example.userservice.dto.UserRegisterRequest;
 import org.example.userservice.dto.UserResponse;
 import org.example.userservice.service.UserService;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -37,9 +39,10 @@ public class UserController {
         return ApiResponse.success("User login successful.", userService.login(request));
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<UserResponse> getById(@PathVariable Long id) {
-        UserResponse response = userService.getById(id);
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> getCurrentUser(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId) {
+        UserResponse response = userService.getById(currentUserId);
         if (response == null) {
             throw new ResponseStatusException(NOT_FOUND, "User not found.");
         }

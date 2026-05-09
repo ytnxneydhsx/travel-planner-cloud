@@ -8,17 +8,17 @@ import org.example.itineraryservice.dto.ItineraryUpdateRequest;
 
 public interface ItineraryService {
 
-    ItineraryResponse create(ItineraryCreateRequest request);
+    ItineraryResponse create(Long currentUserId, ItineraryCreateRequest request);
 
-    ItineraryResponse getById(Long id);
+    ItineraryResponse getById(Long id, Long currentUserId);
 
-    List<ItineraryResponse> listByUserId(Long userId);
+    List<ItineraryResponse> listByUserId(Long currentUserId);
 
-    ItineraryResponse update(Long id, ItineraryUpdateRequest request);
+    ItineraryResponse update(Long id, Long currentUserId, ItineraryUpdateRequest request);
 
-    void deleteById(Long id);
+    void deleteById(Long id, Long currentUserId);
 
-    ItineraryResponse addDestination(Long itineraryId, ItineraryDestinationAddRequest request);
+    ItineraryResponse addDestination(Long itineraryId, Long currentUserId, ItineraryDestinationAddRequest request);
 
-    ItineraryResponse removeDestination(Long itineraryId, Long destinationId);
+    ItineraryResponse removeDestination(Long itineraryId, Long currentUserId, Long destinationId);
 }

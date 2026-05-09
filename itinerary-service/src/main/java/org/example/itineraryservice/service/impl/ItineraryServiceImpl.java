@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -45,11 +46,11 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
-    public ItineraryResponse create(ItineraryCreateRequest request) {
+    public ItineraryResponse create(Long currentUserId, ItineraryCreateRequest request) {
         validateDestinationIds(request.getDestinationIds());
 
         Itinerary itinerary = Itinerary.builder()
-                .userId(request.getUserId())
+                .userId(currentUserId)
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .build();
@@ -69,39 +70,45 @@ public class ItineraryServiceImpl implements ItineraryService {
             }
         }
 
-        return getById(itinerary.getId());
+        return getById(itinerary.getId(), currentUserId);
     }
 
     @Override
-    public ItineraryResponse getById(Long id) {
-        return toResponse(itineraryMapper.selectById(id));
+    public ItineraryResponse getById(Long id, Long currentUserId) {
+        return toResponse(requireOwnedItinerary(id, currentUserId));
     }
 
     @Override
-    public List<ItineraryResponse> listByUserId(Long userId) {
-        return itineraryMapper.selectByUserId(userId).stream()
+    public List<ItineraryResponse> listByUserId(Long currentUserId) {
+        return itineraryMapper.selectByUserId(currentUserId).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Override
-    public ItineraryResponse update(Long id, ItineraryUpdateRequest request) {
+    public ItineraryResponse update(Long id, Long currentUserId, ItineraryUpdateRequest request) {
+        requireOwnedItinerary(id, currentUserId);
         itineraryMapper.updateById(Itinerary.builder()
                 .id(id)
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .build());
-        return getById(id);
+        return getById(id, currentUserId);
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(Long id, Long currentUserId) {
+        requireOwnedItinerary(id, currentUserId);
         itineraryDestinationMapper.deleteByItineraryId(id);
         itineraryMapper.deleteById(id);
     }
 
     @Override
-    public ItineraryResponse addDestination(Long itineraryId, ItineraryDestinationAddRequest request) {
+    public ItineraryResponse addDestination(
+            Long itineraryId,
+            Long currentUserId,
+            ItineraryDestinationAddRequest request) {
+        requireOwnedItinerary(itineraryId, currentUserId);
         ItineraryDestination existing = itineraryDestinationMapper.selectByItineraryIdAndDestinationId(
                 itineraryId,
                 request.getDestinationId());
@@ -118,11 +125,12 @@ public class ItineraryServiceImpl implements ItineraryService {
                 .sortOrder((maxSortOrder == null ? 0 : maxSortOrder) + 1)
                 .build());
 
-        return getById(itineraryId);
+        return getById(itineraryId, currentUserId);
     }
 
     @Override
-    public ItineraryResponse removeDestination(Long itineraryId, Long destinationId) {
+    public ItineraryResponse removeDestination(Long itineraryId, Long currentUserId, Long destinationId) {
+        requireOwnedItinerary(itineraryId, currentUserId);
         ItineraryDestination existing = itineraryDestinationMapper.selectByItineraryIdAndDestinationId(
                 itineraryId,
                 destinationId);
@@ -131,7 +139,7 @@ public class ItineraryServiceImpl implements ItineraryService {
         }
 
         itineraryDestinationMapper.deleteByItineraryIdAndDestinationId(itineraryId, destinationId);
-        return getById(itineraryId);
+        return getById(itineraryId, currentUserId);
     }
 
     private void validateDestinationIds(List<Long> destinationIds) {
@@ -204,5 +212,16 @@ public class ItineraryServiceImpl implements ItineraryService {
                 .coverImageUrl(destination == null ? null : destination.getCoverImageUrl())
                 .sortOrder(itineraryDestination.getSortOrder())
                 .build();
+    }
+
+    private Itinerary requireOwnedItinerary(Long itineraryId, Long currentUserId) {
+        Itinerary itinerary = itineraryMapper.selectById(itineraryId);
+        if (itinerary == null) {
+            throw new ResponseStatusException(NOT_FOUND, "Itinerary not found.");
+        }
+        if (!itinerary.getUserId().equals(currentUserId)) {
+            throw new ResponseStatusException(FORBIDDEN, "Forbidden.");
+        }
+        return itinerary;
     }
 }

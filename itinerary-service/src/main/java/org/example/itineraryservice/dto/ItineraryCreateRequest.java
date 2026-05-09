@@ -16,10 +16,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ItineraryCreateRequest {
 
-    @NotNull(message = "userId must not be null.")
-    @Min(value = 1, message = "userId must be greater than 0.")
-    private Long userId;
-
     @NotBlank(message = "title must not be blank.")
     @Size(max = 100, message = "title length must be less than or equal to 100.")
     private String title;

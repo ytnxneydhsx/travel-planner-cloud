@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.util.List;
 import org.example.common.web.ApiResponse;
+import org.example.common.web.RequestHeaderNames;
 import org.example.itineraryservice.dto.ItineraryCreateRequest;
 import org.example.itineraryservice.dto.ItineraryDestinationAddRequest;
 import org.example.itineraryservice.dto.ItineraryResponse;
@@ -16,12 +17,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Validated
 @RestController
@@ -35,62 +33,60 @@ public class ItineraryController {
     }
 
     @PostMapping
-    public ApiResponse<ItineraryResponse> create(@Valid @RequestBody ItineraryCreateRequest request) {
-        return ApiResponse.success("Itinerary created successfully.", itineraryService.create(request));
+    public ApiResponse<ItineraryResponse> create(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId,
+            @Valid @RequestBody ItineraryCreateRequest request) {
+        return ApiResponse.success("Itinerary created successfully.", itineraryService.create(currentUserId, request));
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ItineraryResponse> getById(@PathVariable Long id) {
-        ItineraryResponse response = itineraryService.getById(id);
-        if (response == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Itinerary not found.");
-        }
-        return ApiResponse.success(response);
+    public ApiResponse<ItineraryResponse> getById(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId,
+            @PathVariable Long id) {
+        return ApiResponse.success(itineraryService.getById(id, currentUserId));
     }
 
     @GetMapping
-    public ApiResponse<List<ItineraryResponse>> listByUserId(@RequestParam @Min(1) Long userId) {
-        return ApiResponse.success(itineraryService.listByUserId(userId));
+    public ApiResponse<List<ItineraryResponse>> listByUserId(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId) {
+        return ApiResponse.success(itineraryService.listByUserId(currentUserId));
     }
 
     @PutMapping("/{id}")
     public ApiResponse<ItineraryResponse> update(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId,
             @PathVariable Long id,
             @Valid @RequestBody ItineraryUpdateRequest request) {
-        if (itineraryService.getById(id) == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Itinerary not found.");
-        }
-        return ApiResponse.success("Itinerary updated successfully.", itineraryService.update(id, request));
+        return ApiResponse.success(
+                "Itinerary updated successfully.",
+                itineraryService.update(id, currentUserId, request));
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteById(@PathVariable Long id) {
-        if (itineraryService.getById(id) == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Itinerary not found.");
-        }
-        itineraryService.deleteById(id);
+    public ApiResponse<Void> deleteById(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId,
+            @PathVariable Long id) {
+        itineraryService.deleteById(id, currentUserId);
         return ApiResponse.success("Itinerary deleted successfully.", null);
     }
 
     @PostMapping("/{id}/destinations")
     public ApiResponse<ItineraryResponse> addDestination(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId,
             @PathVariable Long id,
             @Valid @RequestBody ItineraryDestinationAddRequest request) {
-        if (itineraryService.getById(id) == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Itinerary not found.");
-        }
-        return ApiResponse.success("Destination added successfully.", itineraryService.addDestination(id, request));
+        return ApiResponse.success(
+                "Destination added successfully.",
+                itineraryService.addDestination(id, currentUserId, request));
     }
 
     @DeleteMapping("/{id}/destinations/{destinationId}")
     public ApiResponse<ItineraryResponse> removeDestination(
+            @RequestHeader(RequestHeaderNames.CURRENT_USER_ID) @Min(1) Long currentUserId,
             @PathVariable Long id,
             @PathVariable Long destinationId) {
-        if (itineraryService.getById(id) == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Itinerary not found.");
-        }
         return ApiResponse.success(
                 "Destination removed successfully.",
-                itineraryService.removeDestination(id, destinationId));
+                itineraryService.removeDestination(id, currentUserId, destinationId));
     }
 }
