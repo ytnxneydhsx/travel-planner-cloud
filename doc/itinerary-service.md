@@ -6,7 +6,7 @@
 
 当前阶段采用以下设计：
 
-- 业务数据使用 `itineraries` 和 `itinerary_destinations` 两张表
+- 业务数据使用 `itinerary` 和 `itinerary_destination` 两张表
 - 行程详情返回时实时查询目的地服务，补齐目的地摘要信息
 - 当前阶段未接入正式网关鉴权，先通过请求头 `X-User-Id` 传入当前用户标识
 - 创建行程时先校验目的地存在性，再在事务内写入行程主表和关联表

@@ -14,7 +14,7 @@ import org.example.destinationservice.entity.Destination;
 public interface DestinationMapper {
 
     @Insert("""
-            INSERT INTO destinations (
+            INSERT INTO destination (
                 name,
                 region_code,
                 address,
@@ -45,9 +45,9 @@ public interface DestinationMapper {
                 description,
                 cover_image_url,
                 status,
-                created_at,
-                updated_at
-            FROM destinations
+                gmt_create,
+                gmt_modified
+            FROM destination
             WHERE id = #{id}
             """)
     Destination selectById(@Param("id") Long id);
@@ -62,9 +62,9 @@ public interface DestinationMapper {
                 description,
                 cover_image_url,
                 status,
-                created_at,
-                updated_at
-            FROM destinations
+                gmt_create,
+                gmt_modified
+            FROM destination
             WHERE name LIKE CONCAT(#{namePrefix}, '%')
             ORDER BY id DESC
             """)
@@ -80,9 +80,9 @@ public interface DestinationMapper {
                 description,
                 cover_image_url,
                 status,
-                created_at,
-                updated_at
-            FROM destinations
+                gmt_create,
+                gmt_modified
+            FROM destination
             WHERE name LIKE CONCAT('%', #{keyword}, '%')
             ORDER BY id DESC
             """)
@@ -90,7 +90,7 @@ public interface DestinationMapper {
 
     @Update("""
             <script>
-            UPDATE destinations
+            UPDATE destination
             <set>
                 <if test="name != null">name = #{name},</if>
                 <if test="regionCode != null">region_code = #{regionCode},</if>
@@ -106,7 +106,7 @@ public interface DestinationMapper {
     int updateById(Destination destination);
 
     @Delete("""
-            DELETE FROM destinations
+            DELETE FROM destination
             WHERE id = #{id}
             """)
     int deleteById(@Param("id") Long id);

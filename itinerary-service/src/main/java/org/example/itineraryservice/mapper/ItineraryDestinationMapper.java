@@ -13,7 +13,7 @@ import org.example.itineraryservice.entity.ItineraryDestination;
 public interface ItineraryDestinationMapper {
 
     @Insert("""
-            INSERT INTO itinerary_destinations (
+            INSERT INTO itinerary_destination (
                 itinerary_id,
                 destination_id,
                 sort_order
@@ -32,8 +32,8 @@ public interface ItineraryDestinationMapper {
                 itinerary_id,
                 destination_id,
                 sort_order,
-                created_at
-            FROM itinerary_destinations
+                gmt_create
+            FROM itinerary_destination
             WHERE itinerary_id = #{itineraryId}
             ORDER BY sort_order ASC, id ASC
             """)
@@ -45,8 +45,8 @@ public interface ItineraryDestinationMapper {
                 itinerary_id,
                 destination_id,
                 sort_order,
-                created_at
-            FROM itinerary_destinations
+                gmt_create
+            FROM itinerary_destination
             WHERE itinerary_id = #{itineraryId}
               AND destination_id = #{destinationId}
             """)
@@ -56,19 +56,19 @@ public interface ItineraryDestinationMapper {
 
     @Select("""
             SELECT COALESCE(MAX(sort_order), 0)
-            FROM itinerary_destinations
+            FROM itinerary_destination
             WHERE itinerary_id = #{itineraryId}
             """)
     Integer selectMaxSortOrderByItineraryId(@Param("itineraryId") Long itineraryId);
 
     @Delete("""
-            DELETE FROM itinerary_destinations
+            DELETE FROM itinerary_destination
             WHERE itinerary_id = #{itineraryId}
             """)
     int deleteByItineraryId(@Param("itineraryId") Long itineraryId);
 
     @Delete("""
-            DELETE FROM itinerary_destinations
+            DELETE FROM itinerary_destination
             WHERE itinerary_id = #{itineraryId}
               AND destination_id = #{destinationId}
             """)

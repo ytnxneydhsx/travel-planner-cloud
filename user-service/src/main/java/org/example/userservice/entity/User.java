@@ -22,7 +22,7 @@ public class User {
 
     private Integer status;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime gmtCreate;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime gmtModified;
 }

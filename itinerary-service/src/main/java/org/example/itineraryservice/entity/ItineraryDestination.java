@@ -20,5 +20,5 @@ public class ItineraryDestination {
 
     private Integer sortOrder;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime gmtCreate;
 }

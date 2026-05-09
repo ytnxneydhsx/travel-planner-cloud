@@ -210,6 +210,8 @@
 
 ### 7. 数据库表结构不符合阿里手册建表强制规约
 
+当前状态：已完成
+
 问题描述：
 
 - 表名使用了复数名词。
@@ -227,6 +229,13 @@
 - 表名不使用复数名词。
 - 表必备基础字段应统一。
 - 主键类型应统一约定，避免后续扩展隐患。
+
+本次修复：
+
+- 已新增 `V2` Flyway 迁移，避免直接修改历史 `V1` 脚本导致已执行环境出现 checksum 校验失败。
+- `user-service` 的用户表已通过迁移从 `users` 调整为 `user_account`，`destination-service` 和 `itinerary-service` 的业务表已统一迁移为单数表名。
+- 三个服务的审计字段已通过迁移从 `created_at / updated_at` 调整为 `gmt_create / gmt_modified`，关联表创建时间字段同步迁移为 `gmt_create`。
+- 主键和关联外键已通过迁移统一调整为 `BIGINT UNSIGNED`，排序字段同步调整为 `INT UNSIGNED`。
 
 ### 8. 更新接口允许“空更新请求”进入动态 SQL
 

@@ -20,7 +20,7 @@ public class Itinerary {
 
     private String description;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime gmtCreate;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime gmtModified;
 }

@@ -14,7 +14,7 @@ import org.example.itineraryservice.entity.Itinerary;
 public interface ItineraryMapper {
 
     @Insert("""
-            INSERT INTO itineraries (
+            INSERT INTO itinerary (
                 user_id,
                 title,
                 description
@@ -33,9 +33,9 @@ public interface ItineraryMapper {
                 user_id,
                 title,
                 description,
-                created_at,
-                updated_at
-            FROM itineraries
+                gmt_create,
+                gmt_modified
+            FROM itinerary
             WHERE id = #{id}
             """)
     Itinerary selectById(@Param("id") Long id);
@@ -46,9 +46,9 @@ public interface ItineraryMapper {
                 user_id,
                 title,
                 description,
-                created_at,
-                updated_at
-            FROM itineraries
+                gmt_create,
+                gmt_modified
+            FROM itinerary
             WHERE user_id = #{userId}
             ORDER BY id DESC
             """)
@@ -56,7 +56,7 @@ public interface ItineraryMapper {
 
     @Update("""
             <script>
-            UPDATE itineraries
+            UPDATE itinerary
             <set>
                 <if test="title != null">title = #{title},</if>
                 <if test="description != null">description = #{description},</if>
@@ -67,7 +67,7 @@ public interface ItineraryMapper {
     int updateById(Itinerary itinerary);
 
     @Delete("""
-            DELETE FROM itineraries
+            DELETE FROM itinerary
             WHERE id = #{id}
             """)
     int deleteById(@Param("id") Long id);

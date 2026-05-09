@@ -6,7 +6,7 @@
 
 当前阶段采用以下设计：
 
-- 业务数据使用单表 `destinations`
+- 业务数据使用单表 `destination`
 - 地区字典使用本地 `gb2260.json`
 - 当前阶段不编写测试代码
 
@@ -66,7 +66,7 @@ destination-service
 ## 当前实现边界
 
 - 先完成景点 CRUD 主线
-- `region_code` 存在 `destinations` 表中
+- `region_code` 存在 `destination` 表中
 - 地区名称由本地 JSON 解析，不单独建 `regions` 表
 
 ## 最新说明

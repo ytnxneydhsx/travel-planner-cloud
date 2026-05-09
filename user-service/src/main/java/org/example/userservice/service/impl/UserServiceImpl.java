@@ -90,8 +90,8 @@ public class UserServiceImpl implements UserService {
                 .username(user.getUsername())
                 .nickname(user.getNickname())
                 .status(user.getStatus())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
+                .createdAt(user.getGmtCreate())
+                .updatedAt(user.getGmtModified())
                 .build();
     }
 }

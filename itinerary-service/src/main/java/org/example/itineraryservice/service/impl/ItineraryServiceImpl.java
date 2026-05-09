@@ -227,8 +227,8 @@ public class ItineraryServiceImpl implements ItineraryService {
                 .title(itinerary.getTitle())
                 .description(itinerary.getDescription())
                 .destinations(destinations)
-                .createdAt(itinerary.getCreatedAt())
-                .updatedAt(itinerary.getUpdatedAt())
+                .createdAt(itinerary.getGmtCreate())
+                .updatedAt(itinerary.getGmtModified())
                 .build();
     }
 

@@ -12,7 +12,7 @@ import org.example.userservice.entity.User;
 public interface UserMapper {
 
     @Insert("""
-            INSERT INTO users (
+            INSERT INTO user_account (
                 username,
                 password,
                 nickname,
@@ -34,9 +34,9 @@ public interface UserMapper {
                 password,
                 nickname,
                 status,
-                created_at,
-                updated_at
-            FROM users
+                gmt_create,
+                gmt_modified
+            FROM user_account
             WHERE id = #{id}
             """)
     User selectById(@Param("id") Long id);
@@ -48,15 +48,15 @@ public interface UserMapper {
                 password,
                 nickname,
                 status,
-                created_at,
-                updated_at
-            FROM users
+                gmt_create,
+                gmt_modified
+            FROM user_account
             WHERE username = #{username}
             """)
     User selectByUsername(@Param("username") String username);
 
     @Update("""
-            UPDATE users
+            UPDATE user_account
             SET password = #{password}
             WHERE id = #{id}
             """)

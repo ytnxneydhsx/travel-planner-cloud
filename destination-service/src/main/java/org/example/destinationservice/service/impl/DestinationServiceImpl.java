@@ -96,8 +96,8 @@ public class DestinationServiceImpl implements DestinationService {
                 .description(destination.getDescription())
                 .coverImageUrl(destination.getCoverImageUrl())
                 .status(destination.getStatus())
-                .createdAt(destination.getCreatedAt())
-                .updatedAt(destination.getUpdatedAt())
+                .createdAt(destination.getGmtCreate())
+                .updatedAt(destination.getGmtModified())
                 .build();
     }
 }
