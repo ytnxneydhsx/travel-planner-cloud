@@ -53,15 +53,16 @@ gateway-service
       │           │  └─ GatewayCorsProperties.java
       │           └─ security
       │              ├─ access
-      │              │  └─ AccessControlProperties.java
+      │              │  ├─ AccessControlProperties.java
+      │              │  └─ RequestHeaderPolicyProperties.java
       │              ├─ authentication
       │              │  ├─ AuthenticationConstants.java
       │              │  ├─ AuthenticatedUser.java
       │              │  ├─ JwtAuthenticationProperties.java
       │              │  └─ JwtTokenVerifier.java
       │              └─ filter
-      │                 ├─ AuthenticatedUserHeaderRelayGlobalFilter.java
-      │                 └─ JwtAuthenticationGlobalFilter.java
+      │                 ├─ JwtAuthenticationGlobalFilter.java
+      │                 └─ RequestHeaderPolicyGlobalFilter.java
       │              └─ response
       │                 ├─ UnauthorizedResponse.java
       │                 └─ UnauthorizedResponseWriter.java
@@ -78,7 +79,7 @@ gateway-service
 - `security`
   只放认证能力。
   `security/access` 放访问控制配置，`security/authentication` 放 JWT 与认证上下文，
-  `security/filter` 放网关认证过滤器，`security/response` 放统一认证失败响应模型与写出器。
+  `security/filter` 放网关认证与请求头策略过滤器，`security/response` 放统一认证失败响应模型与写出器。
 - `resources/application.properties`
   放路由、端口、跨域、JWT 和访问控制配置。
 
@@ -121,14 +122,12 @@ gateway-service
 - 当前路由仍然通过固定 URL 指向 `user-service`、`destination-service`、`itinerary-service`
 - 当前还没有接入注册中心，后续可以切换到服务发现
 - 当前只放行注册和登录接口，其他受保护接口统一要求 JWT
-- 当前已由网关统一重建并透传可信 `X-User-Id`，后续如有需要可以继续透传用户名、昵称或 trace 信息
+- 当前已通过请求头策略统一剥离客户端伪造的内部身份头，并由网关重建可信 `X-User-Id`
 - 当前未认证响应已统一为结构化 JSON，后续仍可继续扩展到 `403`、`429` 等场景
 
 ## 接下来网关 TODO
 
-1. 请求头透传策略收口
-   明确哪些请求头允许透传、哪些必须剥离、哪些应由网关统一重建。
-2. 路由配置进一步整理
+1. 路由配置进一步整理
    后续根据服务数量和路由策略，继续收口静态路由配置的组织方式。
-3. 网关日志
+2. 网关日志
    增补基础访问日志、鉴权拒绝日志和关键转发日志，方便排障和审计。
