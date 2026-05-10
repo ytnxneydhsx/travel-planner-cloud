@@ -1,12 +1,12 @@
 package org.example.gatewayservice.security.filter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.example.gatewayservice.security.access.AccessControlProperties;
 import org.example.gatewayservice.security.authentication.AuthenticatedUser;
 import org.example.gatewayservice.security.authentication.AuthenticationConstants;
 import org.example.gatewayservice.security.authentication.JwtTokenVerifier;
+import org.example.gatewayservice.security.response.UnauthorizedResponseWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -14,8 +14,6 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
@@ -33,11 +31,15 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
 
     private final JwtTokenVerifier jwtTokenVerifier;
 
+    private final UnauthorizedResponseWriter unauthorizedResponseWriter;
+
     public JwtAuthenticationGlobalFilter(
             AccessControlProperties accessControlProperties,
-            JwtTokenVerifier jwtTokenVerifier) {
+            JwtTokenVerifier jwtTokenVerifier,
+            UnauthorizedResponseWriter unauthorizedResponseWriter) {
         this.accessControlProperties = accessControlProperties;
         this.jwtTokenVerifier = jwtTokenVerifier;
+        this.unauthorizedResponseWriter = unauthorizedResponseWriter;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
                 || !authorization.startsWith(AuthenticationConstants.AUTHORIZATION_PREFIX)) {
             log.warn("Gateway rejected request due to missing bearer token: path={}",
                     exchange.getRequest().getPath().value());
-            return writeUnauthorizedResponse(exchange, "Unauthorized.");
+            return unauthorizedResponseWriter.write(exchange, "Unauthorized.");
         }
 
         String token = authorization.substring(AuthenticationConstants.AUTHORIZATION_PREFIX.length());
@@ -64,7 +66,7 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
         } catch (JWTVerificationException exception) {
             log.warn("Gateway rejected request due to invalid token: path={}",
                     exchange.getRequest().getPath().value());
-            return writeUnauthorizedResponse(exchange, "Unauthorized.");
+            return unauthorizedResponseWriter.write(exchange, "Unauthorized.");
         }
     }
 
@@ -86,14 +88,5 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
 
         return whitelistPaths.stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, requestPath));
-    }
-
-    private Mono<Void> writeUnauthorizedResponse(ServerWebExchange exchange, String message) {
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_PLAIN);
-        byte[] responseBody = message.getBytes(StandardCharsets.UTF_8);
-        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                .bufferFactory()
-                .wrap(responseBody)));
     }
 }
