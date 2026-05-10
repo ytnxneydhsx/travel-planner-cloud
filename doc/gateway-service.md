@@ -51,6 +51,11 @@ gateway-service
       │           ├─ cors
       │           │  ├─ GatewayCorsConfiguration.java
       │           │  └─ GatewayCorsProperties.java
+      │           ├─ logging
+      │           │  ├─ GatewayAccessLogGlobalFilter.java
+      │           │  ├─ RequestTraceGlobalFilter.java
+      │           │  ├─ GatewayAccessLogProperties.java
+      │           │  └─ TraceContextConstants.java
       │           └─ security
       │              ├─ access
       │              │  ├─ AccessControlProperties.java
@@ -60,7 +65,7 @@ gateway-service
       │              │  ├─ AuthenticatedUser.java
       │              │  ├─ JwtAuthenticationProperties.java
       │              │  └─ JwtTokenVerifier.java
-      │              └─ filter
+      │              ├─ filter
       │                 ├─ JwtAuthenticationGlobalFilter.java
       │                 └─ RequestHeaderPolicyGlobalFilter.java
       │              └─ response
@@ -76,6 +81,8 @@ gateway-service
   网关启动入口，后续只负责启动 Spring Cloud Gateway。
 - `cors`
   只放跨域能力，包括跨域属性和 `CorsWebFilter` 注册配置。
+- `logging`
+  只放网关访问日志与链路追踪能力，包括访问日志开关配置、`traceId` 透传和全局日志过滤器。
 - `security`
   只放认证能力。
   `security/access` 放访问控制配置，`security/authentication` 放 JWT 与认证上下文，
@@ -124,10 +131,9 @@ gateway-service
 - 当前只放行注册和登录接口，其他受保护接口统一要求 JWT
 - 当前已通过请求头策略统一剥离客户端伪造的内部身份头，并由网关重建可信 `X-User-Id`
 - 当前未认证响应已统一为结构化 JSON，后续仍可继续扩展到 `403`、`429` 等场景
+- 当前已具备基础访问日志，统一记录 `traceId`、请求方法、路径、状态码、路由 ID、目标地址、用户 ID 和耗时
 
 ## 接下来网关 TODO
 
 1. 路由配置进一步整理
    后续根据服务数量和路由策略，继续收口静态路由配置的组织方式。
-2. 网关日志
-   增补基础访问日志、鉴权拒绝日志和关键转发日志，方便排障和审计。
