@@ -4,6 +4,8 @@ public final class RequestHeaderNames {
 
     public static final String CURRENT_USER_ID = "X-User-Id";
 
+    public static final String TRACE_ID = "X-Trace-Id";
+
     private RequestHeaderNames() {
     }
 }

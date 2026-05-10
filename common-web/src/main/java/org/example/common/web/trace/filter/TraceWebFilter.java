@@ -1,0 +1,46 @@
+package org.example.common.web.trace.filter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import org.example.common.web.RequestHeaderNames;
+import org.example.common.web.trace.context.TraceContext;
+import org.example.common.web.trace.generator.TraceIdGenerator;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+public class TraceWebFilter extends OncePerRequestFilter {
+
+    private final TraceIdGenerator traceIdGenerator;
+
+    public TraceWebFilter(TraceIdGenerator traceIdGenerator) {
+        this.traceIdGenerator = traceIdGenerator;
+    }
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
+        String traceId = resolveTraceId(request);
+
+        TraceContext.bind(request, traceId);
+        response.setHeader(RequestHeaderNames.TRACE_ID, traceId);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            TraceContext.clear();
+        }
+    }
+
+    private String resolveTraceId(HttpServletRequest request) {
+        String traceId = request.getHeader(RequestHeaderNames.TRACE_ID);
+        if (StringUtils.hasText(traceId)) {
+            return traceId;
+        }
+
+        return traceIdGenerator.generate();
+    }
+}
