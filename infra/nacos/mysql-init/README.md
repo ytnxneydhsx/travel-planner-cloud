@@ -1,8 +1,18 @@
 # mysql-init
 
-This directory is mounted into the MySQL container as `/docker-entrypoint-initdb.d`.
+This directory contains initialization files for two separate MySQL containers.
 
-Before first startup, generate `mysql-schema.sql`:
+Current responsibilities:
+
+- `business/01-create-business-databases.sql`
+  Creates the business databases used by:
+  - `user-service`
+  - `destination-service`
+  - `itinerary-service`
+- `nacos/mysql-schema.sql`
+  Generated from the Nacos version in `.env` and executed by the dedicated Nacos MySQL instance
+
+Before first startup, generate the Nacos schema:
 
 ```powershell
 .\scripts\prepare-mysql-schema.ps1

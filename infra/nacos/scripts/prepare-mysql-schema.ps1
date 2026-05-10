@@ -2,8 +2,9 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $root ".env"
-$targetDir = Join-Path $root "mysql-init"
+$targetDir = Join-Path $root "mysql-init\\nacos"
 $targetFile = Join-Path $targetDir "mysql-schema.sql"
+$temporaryFile = Join-Path $targetDir "mysql-schema.raw.sql"
 
 if (-not (Test-Path $envFile)) {
     throw "Missing .env file: $envFile"
@@ -24,13 +25,24 @@ $legacySchemaUrl = "https://raw.githubusercontent.com/alibaba/nacos/$cleanVersio
 New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
 
 try {
-    Invoke-WebRequest -Uri $newSchemaUrl -OutFile $targetFile -UseBasicParsing
+    Invoke-WebRequest -Uri $newSchemaUrl -OutFile $temporaryFile -UseBasicParsing
 } catch {
-    Invoke-WebRequest -Uri $legacySchemaUrl -OutFile $targetFile -UseBasicParsing
+    Invoke-WebRequest -Uri $legacySchemaUrl -OutFile $temporaryFile -UseBasicParsing
 }
 
-if (-not (Test-Path $targetFile) -or (Get-Item $targetFile).Length -eq 0) {
-    throw "Failed to prepare Nacos MySQL schema: $targetFile"
+if (-not (Test-Path $temporaryFile) -or (Get-Item $temporaryFile).Length -eq 0) {
+    throw "Failed to download Nacos MySQL schema: $temporaryFile"
 }
+
+@"
+CREATE DATABASE IF NOT EXISTS nacos_config
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE nacos_config;
+
+"@ | Set-Content -Path $targetFile
+Get-Content $temporaryFile | Add-Content -Path $targetFile
+Remove-Item $temporaryFile -Force
 
 Write-Host "Prepared Nacos MySQL schema: $targetFile"

@@ -1,19 +1,39 @@
 services:
+  business-mysql:
+    image: mysql:8.0.30
+    container_name: travel-business-mysql
+    env_file:
+      - ./env/business-mysql.env
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "${BUSINESS_MYSQL_PORT:-3306}:3306"
+    volumes:
+      - ./data/business-mysql:/var/lib/mysql
+      - ./mysql-init/business:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+    restart: unless-stopped
+
   nacos-mysql:
     image: mysql:8.0.30
     container_name: travel-nacos-mysql
     env_file:
-      - ./env/mysql.env
+      - ./env/nacos-mysql.env
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     ports:
       - "${NACOS_MYSQL_PORT:-33060}:3306"
     volumes:
-      - ./data/mysql:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+      - ./data/nacos-mysql:/var/lib/mysql
+      - ./mysql-init/nacos:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
       interval: 5s
       timeout: 10s
       retries: 20
