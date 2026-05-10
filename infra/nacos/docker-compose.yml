@@ -54,3 +54,87 @@ services:
     volumes:
       - ./logs/nacos:/home/nacos/logs
     restart: unless-stopped
+
+  user-service:
+    profiles:
+      - microservices
+    build:
+      context: ../..
+      dockerfile: Dockerfile.spring-service
+      args:
+        SERVICE_MODULE: user-service
+    container_name: travel-user-service
+    env_file:
+      - ./env/user-service.env
+    depends_on:
+      business-mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    ports:
+      - "${USER_SERVICE_PORT:-8082}:8082"
+    restart: unless-stopped
+
+  destination-service:
+    profiles:
+      - microservices
+    build:
+      context: ../..
+      dockerfile: Dockerfile.spring-service
+      args:
+        SERVICE_MODULE: destination-service
+    container_name: travel-destination-service
+    env_file:
+      - ./env/destination-service.env
+    depends_on:
+      business-mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    ports:
+      - "${DESTINATION_SERVICE_PORT:-8081}:8081"
+    restart: unless-stopped
+
+  itinerary-service:
+    profiles:
+      - microservices
+    build:
+      context: ../..
+      dockerfile: Dockerfile.spring-service
+      args:
+        SERVICE_MODULE: itinerary-service
+    container_name: travel-itinerary-service
+    env_file:
+      - ./env/itinerary-service.env
+    depends_on:
+      business-mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    ports:
+      - "${ITINERARY_SERVICE_PORT:-8083}:8083"
+    restart: unless-stopped
+
+  gateway-service:
+    profiles:
+      - microservices
+    build:
+      context: ../..
+      dockerfile: Dockerfile.spring-service
+      args:
+        SERVICE_MODULE: gateway-service
+    container_name: travel-gateway-service
+    env_file:
+      - ./env/gateway-service.env
+    depends_on:
+      nacos:
+        condition: service_started
+      user-service:
+        condition: service_started
+      destination-service:
+        condition: service_started
+      itinerary-service:
+        condition: service_started
+    ports:
+      - "${GATEWAY_SERVICE_PORT:-8080}:8080"
+    restart: unless-stopped

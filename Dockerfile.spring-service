@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1.7
+
+ARG MAVEN_IMAGE=maven:3.9.15-eclipse-temurin-25-alpine
+ARG RUNTIME_IMAGE=eclipse-temurin:25-jre
+
+FROM ${MAVEN_IMAGE} AS build
+ARG SERVICE_MODULE
+WORKDIR /workspace
+
+COPY pom.xml ./
+COPY common-web/pom.xml common-web/pom.xml
+COPY destination-service/pom.xml destination-service/pom.xml
+COPY gateway-service/pom.xml gateway-service/pom.xml
+COPY itinerary-service/pom.xml itinerary-service/pom.xml
+COPY user-service/pom.xml user-service/pom.xml
+
+RUN mvn -B -ntp -pl ${SERVICE_MODULE} -am dependency:go-offline
+
+COPY common-web/src common-web/src
+COPY destination-service/src destination-service/src
+COPY gateway-service/src gateway-service/src
+COPY itinerary-service/src itinerary-service/src
+COPY user-service/src user-service/src
+
+RUN mvn -B -ntp -pl ${SERVICE_MODULE} -am -DskipTests package && \
+    jar_file="$(find /workspace/${SERVICE_MODULE}/target -maxdepth 1 -type f -name '*.jar' ! -name '*.original' | head -n 1)" && \
+    test -n "${jar_file}" && \
+    cp "${jar_file}" /workspace/app.jar
+
+FROM ${RUNTIME_IMAGE}
+WORKDIR /app
+
+COPY --from=build /workspace/app.jar /app/app.jar
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+

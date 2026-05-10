@@ -1,0 +1,6 @@
+.git
+.idea
+**/target
+infra/nacos/data
+infra/nacos/logs
+
