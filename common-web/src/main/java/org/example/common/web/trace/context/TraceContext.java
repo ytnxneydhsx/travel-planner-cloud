@@ -24,6 +24,10 @@ public final class TraceContext {
         return null;
     }
 
+    public static String getCurrentTraceId() {
+        return MDC.get(TraceMdcKeys.TRACE_ID);
+    }
+
     public static void clear() {
         MDC.remove(TraceMdcKeys.TRACE_ID);
     }
