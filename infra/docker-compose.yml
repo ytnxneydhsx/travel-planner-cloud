@@ -15,6 +15,26 @@ services:
       - ./observability/data/loki:/loki
     restart: "no"
 
+  alloy:
+    profiles:
+      - observability
+    image: grafana/alloy:v1.16.0
+    container_name: travel-alloy
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    depends_on:
+      - loki
+    ports:
+      - "${ALLOY_HTTP_PORT:-12345}:12345"
+    volumes:
+      - ./observability/alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - ./observability/data/alloy:/var/lib/alloy/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: "no"
+
   business-mysql:
     image: mysql:8.0.30
     container_name: travel-business-mysql
