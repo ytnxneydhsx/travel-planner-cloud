@@ -1,0 +1,2 @@
+traceDubboConsumerFilter=org.example.common.web.trace.dubbo.TraceDubboConsumerFilter
+traceDubboProviderFilter=org.example.common.web.trace.dubbo.TraceDubboProviderFilter

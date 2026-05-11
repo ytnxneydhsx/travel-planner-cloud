@@ -12,6 +12,10 @@ public final class TraceContext {
 
     public static void bind(HttpServletRequest request, String traceId) {
         request.setAttribute(TraceConstants.TRACE_ID_ATTRIBUTE, traceId);
+        bindCurrentTraceId(traceId);
+    }
+
+    public static void bindCurrentTraceId(String traceId) {
         MDC.put(TraceMdcKeys.TRACE_ID, traceId);
     }
 
