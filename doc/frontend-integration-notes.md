@@ -16,7 +16,7 @@ No Java backend business code was changed for the frontend.
 
 The only backend-adjacent additions are environment and testing support:
 
-- `infra/nacos/docker-compose.test.yml`
+- `infra/docker-compose.test.yml`
 - `infra/nacos/env/*.test.env`
 - `infra/nacos/mysql-init/business/02-create-test-business-databases.sql`
 - `infra/nacos/scripts/seed-test-data.ps1`
@@ -51,21 +51,21 @@ This matches the travel-planning use case better than a dense admin dashboard.
 Start backend test/debug stack:
 
 ```powershell
-cd infra\nacos
-.\scripts\prepare-mysql-schema.ps1
+cd infra
+.\nacos\scripts\prepare-mysql-schema.ps1
 docker compose -f docker-compose.yml -f docker-compose.test.yml --profile microservices up -d --build
 ```
 
 Seed demo data:
 
 ```powershell
-.\scripts\seed-test-data.ps1
+.\nacos\scripts\seed-test-data.ps1
 ```
 
 Start frontend:
 
 ```powershell
-cd ..\..\frontend
+cd ..\frontend
 npm install
 npm run dev
 ```

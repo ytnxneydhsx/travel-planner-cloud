@@ -10,7 +10,7 @@ Current responsibilities:
   - `destination-service`
   - `itinerary-service`
 - `nacos/mysql-schema.sql`
-  Generated from the Nacos version in `.env` and executed by the dedicated Nacos MySQL instance
+  Generated from the Nacos version in `../../.env` and executed by the dedicated Nacos MySQL instance
 
 Before first startup, generate the Nacos schema:
 
@@ -18,4 +18,4 @@ Before first startup, generate the Nacos schema:
 .\scripts\prepare-mysql-schema.ps1
 ```
 
-The generated SQL file is ignored by Git because it is derived from the Nacos version in `.env`.
+The generated SQL file is ignored by Git because it is derived from the Nacos version in `../../.env`.

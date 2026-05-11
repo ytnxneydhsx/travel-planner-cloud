@@ -1,8 +1,9 @@
 $ErrorActionPreference = "Stop"
 
-$root = Split-Path -Parent $PSScriptRoot
-$envFile = Join-Path $root ".env"
-$targetDir = Join-Path $root "mysql-init\\nacos"
+$nacosRoot = Split-Path -Parent $PSScriptRoot
+$infraRoot = Split-Path -Parent $nacosRoot
+$envFile = Join-Path $infraRoot ".env"
+$targetDir = Join-Path $nacosRoot "mysql-init\\nacos"
 $targetFile = Join-Path $targetDir "mysql-schema.sql"
 $temporaryFile = Join-Path $targetDir "mysql-schema.raw.sql"
 

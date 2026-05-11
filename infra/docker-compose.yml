@@ -1,17 +1,19 @@
+name: nacos
+
 services:
   business-mysql:
     image: mysql:8.0.30
     container_name: travel-business-mysql
     env_file:
-      - ./env/business-mysql.env
+      - ./nacos/env/business-mysql.env
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     ports:
       - "${BUSINESS_MYSQL_PORT:-3306}:3306"
     volumes:
-      - ./data/business-mysql:/var/lib/mysql
-      - ./mysql-init/business:/docker-entrypoint-initdb.d:ro
+      - ./nacos/data/business-mysql:/var/lib/mysql
+      - ./nacos/mysql-init/business:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
       interval: 5s
@@ -23,15 +25,15 @@ services:
     image: mysql:8.0.30
     container_name: travel-nacos-mysql
     env_file:
-      - ./env/nacos-mysql.env
+      - ./nacos/env/nacos-mysql.env
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     ports:
       - "${NACOS_MYSQL_PORT:-33060}:3306"
     volumes:
-      - ./data/nacos-mysql:/var/lib/mysql
-      - ./mysql-init/nacos:/docker-entrypoint-initdb.d:ro
+      - ./nacos/data/nacos-mysql:/var/lib/mysql
+      - ./nacos/mysql-init/nacos:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
       interval: 5s
@@ -46,26 +48,26 @@ services:
       nacos-mysql:
         condition: service_healthy
     env_file:
-      - ./env/nacos.env
+      - ./nacos/env/nacos.env
     ports:
       - "${NACOS_CONSOLE_PORT:-18080}:8080"
       - "${NACOS_SERVER_PORT:-8848}:8848"
       - "${NACOS_GRPC_PORT:-9848}:9848"
     volumes:
-      - ./logs/nacos:/home/nacos/logs
+      - ./nacos/logs/nacos:/home/nacos/logs
     restart: "no"
 
   user-service:
     profiles:
       - microservices
     build:
-      context: ../..
+      context: ..
       dockerfile: Dockerfile.spring-service
       args:
         SERVICE_MODULE: user-service
     container_name: travel-user-service
     env_file:
-      - ./env/user-service.env
+      - ./nacos/env/user-service.env
     depends_on:
       business-mysql:
         condition: service_healthy
@@ -77,13 +79,13 @@ services:
     profiles:
       - microservices
     build:
-      context: ../..
+      context: ..
       dockerfile: Dockerfile.spring-service
       args:
         SERVICE_MODULE: destination-service
     container_name: travel-destination-service
     env_file:
-      - ./env/destination-service.env
+      - ./nacos/env/destination-service.env
     depends_on:
       business-mysql:
         condition: service_healthy
@@ -95,13 +97,13 @@ services:
     profiles:
       - microservices
     build:
-      context: ../..
+      context: ..
       dockerfile: Dockerfile.spring-service
       args:
         SERVICE_MODULE: itinerary-service
     container_name: travel-itinerary-service
     env_file:
-      - ./env/itinerary-service.env
+      - ./nacos/env/itinerary-service.env
     depends_on:
       business-mysql:
         condition: service_healthy
@@ -113,13 +115,13 @@ services:
     profiles:
       - microservices
     build:
-      context: ../..
+      context: ..
       dockerfile: Dockerfile.spring-service
       args:
         SERVICE_MODULE: gateway-service
     container_name: travel-gateway-service
     env_file:
-      - ./env/gateway-service.env
+      - ./nacos/env/gateway-service.env
     depends_on:
       nacos:
         condition: service_started

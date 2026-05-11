@@ -1,15 +1,15 @@
 # Local infrastructure
 
-This directory provides the local Docker infrastructure required to run the project in development.
+This directory provides the Nacos-specific files used by the local Docker infrastructure.
 
 Current scope:
 
 - one shared MySQL instance for business services
 - one dedicated MySQL instance for Nacos
 - one Nacos instance for service discovery
-- optional Dockerized microservices profile for the full application stack
+- optional Dockerized microservices profile for the full application stack, defined in `../docker-compose.yml`
 
-The directory name remains `infra/nacos` for compatibility, but its scope is now the full local runtime stack rather than Nacos alone.
+Run Docker Compose commands from `infra/`. Nacos scripts and environment files remain under `infra/nacos/`.
 
 ## Ports
 
@@ -28,8 +28,8 @@ The Nacos MySQL uses `33060` to keep infrastructure data separate from business 
 Generate the Nacos MySQL schema before the first MySQL startup:
 
 ```powershell
-cd infra\nacos
-.\scripts\prepare-mysql-schema.ps1
+cd infra
+.\nacos\scripts\prepare-mysql-schema.ps1
 docker compose up -d
 ```
 
@@ -79,24 +79,24 @@ database: nacos_config
 Infrastructure only:
 
 ```powershell
-cd infra\nacos
-.\scripts\prepare-mysql-schema.ps1
+cd infra
+.\nacos\scripts\prepare-mysql-schema.ps1
 docker compose up -d
 ```
 
 Full microservice stack in Docker:
 
 ```powershell
-cd infra\nacos
-.\scripts\prepare-mysql-schema.ps1
+cd infra
+.\nacos\scripts\prepare-mysql-schema.ps1
 docker compose --profile microservices up -d --build
 ```
 
 Test/debug microservice stack in Docker:
 
 ```powershell
-cd infra\nacos
-.\scripts\prepare-mysql-schema.ps1
+cd infra
+.\nacos\scripts\prepare-mysql-schema.ps1
 docker compose -f docker-compose.yml -f docker-compose.test.yml --profile microservices up -d --build
 ```
 
@@ -123,7 +123,7 @@ CREATE DATABASE IF NOT EXISTS travel_itinerary_test CHARACTER SET utf8mb4 COLLAT
 After the test/debug services have started and Flyway has created the tables, seed demo data through the gateway:
 
 ```powershell
-.\scripts\seed-test-data.ps1
+.\nacos\scripts\seed-test-data.ps1
 ```
 
 Demo login:
@@ -150,29 +150,32 @@ Published service ports:
 ## Stop
 
 ```powershell
-cd infra\nacos
+cd infra
 docker compose down
 ```
 
 Stop the full stack including the Dockerized services:
 
 ```powershell
-cd infra\nacos
+cd infra
 docker compose --profile microservices down
 ```
 
 ## Reset local data
 
-Stop containers first, then remove `data/` and `logs/`.
+Stop containers first, then remove local runtime data and logs.
 
 ```powershell
-cd infra\nacos
+cd infra
 docker compose down
-Remove-Item -Recurse -Force .\data, .\logs
+Remove-Item -Recurse -Force .\nacos\data, .\nacos\logs, .\observability\data
 ```
 
 ## Directory layout
 
+- `../docker-compose.yml`: local runtime stack
+- `../docker-compose.test.yml`: test/debug environment overrides
+- `../.env`: Docker Compose image versions and published ports
 - `env/business-mysql.env`: business MySQL container environment
 - `env/nacos-mysql.env`: Nacos MySQL container environment
 - `env/nacos.env`: Nacos server environment
@@ -184,6 +187,6 @@ Remove-Item -Recurse -Force .\data, .\logs
 The Java services already include Nacos discovery dependencies and registration properties.
 For the full Dockerized stack, the next step is runtime verification:
 
-- start Docker Desktop and bring up `infra/nacos` with the `microservices` profile
+- start Docker Desktop and bring up `infra` with the `microservices` profile
 - verify all four services appear in the Nacos console
 - verify requests through `gateway-service` on `http://localhost:8080`
