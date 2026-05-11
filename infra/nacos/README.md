@@ -120,6 +120,19 @@ CREATE DATABASE IF NOT EXISTS travel_destination_test CHARACTER SET utf8mb4 COLL
 CREATE DATABASE IF NOT EXISTS travel_itinerary_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
+After the test/debug services have started and Flyway has created the tables, seed demo data through the gateway:
+
+```powershell
+.\scripts\seed-test-data.ps1
+```
+
+Demo login:
+
+```text
+username: traveler_test
+password: travel123
+```
+
 The `microservices` profile starts:
 
 - `user-service`
