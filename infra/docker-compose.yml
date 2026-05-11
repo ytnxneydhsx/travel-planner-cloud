@@ -35,6 +35,24 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: "no"
 
+  grafana:
+    profiles:
+      - observability
+    image: grafana/grafana:12.2.1
+    container_name: travel-grafana
+    depends_on:
+      - loki
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_DEFAULT_THEME: light
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/data/grafana:/var/lib/grafana
+    restart: "no"
+
   business-mysql:
     image: mysql:8.0.30
     container_name: travel-business-mysql
