@@ -41,8 +41,16 @@ CREATE DATABASE IF NOT EXISTS nacos_config
 
 USE nacos_config;
 
-"@ | Set-Content -Path $targetFile
-Get-Content $temporaryFile | Add-Content -Path $targetFile
+"@ | Set-Content -Path $targetFile -Encoding UTF8
+Get-Content -Path $temporaryFile -Raw -Encoding UTF8 | Add-Content -Path $targetFile -Encoding UTF8
+@'
+
+INSERT IGNORE INTO users (username, password, enabled)
+VALUES ('nacos', '$2a$10$EuWPZHzz32dJN7jexM34MOeYirDdFAZm2kuWj7VEOJhhZkDrxfvUu', TRUE);
+
+INSERT IGNORE INTO roles (username, role)
+VALUES ('nacos', 'ROLE_ADMIN');
+'@ | Add-Content -Path $targetFile -Encoding UTF8
 Remove-Item $temporaryFile -Force
 
 Write-Host "Prepared Nacos MySQL schema: $targetFile"

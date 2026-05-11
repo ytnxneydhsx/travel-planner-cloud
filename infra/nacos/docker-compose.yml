@@ -17,7 +17,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 20
-    restart: unless-stopped
+    restart: "no"
 
   nacos-mysql:
     image: mysql:8.0.30
@@ -37,7 +37,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 20
-    restart: unless-stopped
+    restart: "no"
 
   nacos:
     image: nacos/nacos-server:${NACOS_VERSION}
@@ -53,7 +53,7 @@ services:
       - "${NACOS_GRPC_PORT:-9848}:9848"
     volumes:
       - ./logs/nacos:/home/nacos/logs
-    restart: unless-stopped
+    restart: "no"
 
   user-service:
     profiles:
@@ -71,9 +71,7 @@ services:
         condition: service_healthy
       nacos:
         condition: service_started
-    ports:
-      - "${USER_SERVICE_PORT:-8082}:8082"
-    restart: unless-stopped
+    restart: "no"
 
   destination-service:
     profiles:
@@ -91,9 +89,7 @@ services:
         condition: service_healthy
       nacos:
         condition: service_started
-    ports:
-      - "${DESTINATION_SERVICE_PORT:-8081}:8081"
-    restart: unless-stopped
+    restart: "no"
 
   itinerary-service:
     profiles:
@@ -111,9 +107,7 @@ services:
         condition: service_healthy
       nacos:
         condition: service_started
-    ports:
-      - "${ITINERARY_SERVICE_PORT:-8083}:8083"
-    restart: unless-stopped
+    restart: "no"
 
   gateway-service:
     profiles:
@@ -137,4 +131,4 @@ services:
         condition: service_started
     ports:
       - "${GATEWAY_SERVICE_PORT:-8080}:8080"
-    restart: unless-stopped
+    restart: "no"

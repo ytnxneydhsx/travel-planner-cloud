@@ -67,7 +67,7 @@ $destinations = @(
         address = "Suzhou Classical Gardens"
         summary = "A quiet garden afternoon stitched together with canals and stone bridges."
         description = "Designed for a calm middle stop with shade, water, and old-town walking."
-        coverImageUrl = "https://images.unsplash.com/photo-1590390426090-7e88f330b173?auto=format&fit=crop&w=900&q=80"
+        coverImageUrl = "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=80"
         status = 1
     },
     @{
