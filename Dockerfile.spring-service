@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:1.7
 
-ARG MAVEN_IMAGE=maven:3.9.15-eclipse-temurin-25-alpine
-ARG RUNTIME_IMAGE=eclipse-temurin:25-jre
+ARG MAVEN_IMAGE=maven:3.9.15-eclipse-temurin-21
+ARG RUNTIME_IMAGE=eclipse-temurin:21-jre
 
 FROM ${MAVEN_IMAGE} AS build
 ARG SERVICE_MODULE
 WORKDIR /workspace
 
 COPY pom.xml ./
+COPY common-rpc/pom.xml common-rpc/pom.xml
 COPY common-web/pom.xml common-web/pom.xml
 COPY destination-service/pom.xml destination-service/pom.xml
 COPY gateway-service/pom.xml gateway-service/pom.xml
@@ -16,6 +17,7 @@ COPY user-service/pom.xml user-service/pom.xml
 
 RUN mvn -B -ntp -pl ${SERVICE_MODULE} -am dependency:go-offline
 
+COPY common-rpc/src common-rpc/src
 COPY common-web/src common-web/src
 COPY destination-service/src destination-service/src
 COPY gateway-service/src gateway-service/src
@@ -33,4 +35,3 @@ WORKDIR /app
 COPY --from=build /workspace/app.jar /app/app.jar
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
-

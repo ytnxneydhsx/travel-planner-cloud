@@ -1,6 +1,5 @@
 package org.example.itineraryservice.manager;
 
-import feign.FeignException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -8,11 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.example.common.web.ApiResponse;
+import org.example.common.rpc.destination.dto.DestinationSummaryRpcDTO;
 import org.example.common.web.BusinessException;
-import org.example.itineraryservice.client.DestinationClient;
-import org.example.itineraryservice.client.dto.DestinationBatchQueryRequest;
 import org.example.itineraryservice.client.dto.DestinationSummary;
+import org.example.itineraryservice.rpc.DestinationDubboClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,10 +23,10 @@ public class DestinationManager {
 
     private static final Logger log = LoggerFactory.getLogger(DestinationManager.class);
 
-    private final DestinationClient destinationClient;
+    private final DestinationDubboClient destinationDubboClient;
 
-    public DestinationManager(DestinationClient destinationClient) {
-        this.destinationClient = destinationClient;
+    public DestinationManager(DestinationDubboClient destinationDubboClient) {
+        this.destinationDubboClient = destinationDubboClient;
     }
 
     public DestinationSummary getRequiredById(Long destinationId) {
@@ -51,23 +49,15 @@ public class DestinationManager {
         }
 
         try {
-            ApiResponse<List<DestinationSummary>> response = destinationClient.getByIds(
-                    DestinationBatchQueryRequest.builder()
-                            .destinationIds(List.copyOf(destinationIds))
-                            .build());
-            if (response == null || !response.isSuccess() || response.getData() == null) {
-                return Collections.emptyMap();
-            }
-            return response.getData().stream()
+            return destinationDubboClient.listByIds(List.copyOf(destinationIds)).stream()
+                    .map(this::toSummary)
                     .collect(Collectors.toMap(
                             DestinationSummary::getId,
                             destination -> destination,
                             (left, right) -> left,
                             LinkedHashMap::new));
-        } catch (FeignException.NotFound exception) {
-            return Collections.emptyMap();
-        } catch (FeignException exception) {
-            log.error("Destination service batch request failed: destinationIds={}", destinationIds, exception);
+        } catch (RuntimeException exception) {
+            log.error("Destination Dubbo request failed: destinationIds={}", destinationIds, exception);
             throw new BusinessException(BAD_GATEWAY, "Destination service request failed.");
         }
     }
@@ -86,5 +76,16 @@ public class DestinationManager {
             log.warn("Destination not found when validating itinerary relation: destinationId={}", missingDestinationId);
             throw new BusinessException(NOT_FOUND, "Destination not found.");
         }
+    }
+
+    private DestinationSummary toSummary(DestinationSummaryRpcDTO destination) {
+        return DestinationSummary.builder()
+                .id(destination.getId())
+                .name(destination.getName())
+                .regionCode(destination.getRegionCode())
+                .regionName(destination.getRegionName())
+                .summary(destination.getSummary())
+                .coverImageUrl(destination.getCoverImageUrl())
+                .build();
     }
 }
