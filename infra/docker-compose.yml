@@ -1,6 +1,20 @@
 name: nacos
 
 services:
+  loki:
+    profiles:
+      - observability
+    image: grafana/loki:3.7.0
+    container_name: travel-loki
+    command:
+      - -config.file=/etc/loki/loki-config.yml
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./observability/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - ./observability/data/loki:/loki
+    restart: "no"
+
   business-mysql:
     image: mysql:8.0.30
     container_name: travel-business-mysql
