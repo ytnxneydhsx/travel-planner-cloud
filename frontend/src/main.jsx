@@ -228,7 +228,11 @@ function App() {
 
         <section className="hero-panel">
           <div>
-            <h1>Plan a softer route through the city</h1>
+            <h1>
+              <span>Plan a softer</span>
+              <span>route through</span>
+              <span>the city</span>
+            </h1>
             <p>
               Browse live destinations from the test gateway, collect stops, then publish a route that keeps the day light.
             </p>

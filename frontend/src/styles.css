@@ -28,6 +28,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 button,
@@ -220,6 +221,10 @@ textarea:focus {
   box-shadow: var(--shadow);
 }
 
+.hero-panel > div {
+  min-width: 0;
+}
+
 h1,
 h2,
 h3 {
@@ -232,6 +237,10 @@ h1 {
   max-width: 720px;
   font-size: clamp(44px, 6vw, 84px);
   line-height: 0.96;
+}
+
+h1 span {
+  display: block;
 }
 
 h2 {
@@ -567,6 +576,9 @@ textarea {
 @media (max-width: 1180px) {
   .app-shell {
     grid-template-columns: 1fr;
+    overflow-x: hidden;
+    width: 100vw;
+    max-width: 100vw;
   }
 
   .sidebar {
@@ -575,6 +587,8 @@ textarea {
     flex-direction: row;
     align-items: center;
     overflow-x: auto;
+    width: 100vw;
+    min-width: 0;
   }
 
   .trace-card {
@@ -599,6 +613,9 @@ textarea {
 @media (max-width: 760px) {
   .workspace {
     padding: 18px;
+    overflow: hidden;
+    width: 100vw;
+    max-width: 100vw;
   }
 
   .topbar,
@@ -615,6 +632,38 @@ textarea {
 
   .hero-panel {
     padding: 24px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: clamp(38px, 10.5vw, 46px);
+    line-height: 1.02;
+    max-width: 100%;
+  }
+
+  .hero-panel p {
+    font-size: 16px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .hero-map {
+    min-height: 220px;
+  }
+
+  .hero-panel > div {
+    width: calc(100vw - 84px);
+    max-width: calc(100vw - 84px);
   }
 
   .destination-card img {
