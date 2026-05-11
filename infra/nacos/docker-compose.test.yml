@@ -1,0 +1,16 @@
+services:
+  user-service:
+    env_file:
+      - ./env/user-service.test.env
+
+  destination-service:
+    env_file:
+      - ./env/destination-service.test.env
+
+  itinerary-service:
+    env_file:
+      - ./env/itinerary-service.test.env
+
+  gateway-service:
+    env_file:
+      - ./env/gateway-service.test.env

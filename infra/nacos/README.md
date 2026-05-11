@@ -60,6 +60,9 @@ Business databases created on first startup:
 - `travel_user`
 - `travel_destination`
 - `travel_itinerary`
+- `travel_user_test`
+- `travel_destination_test`
+- `travel_itinerary_test`
 
 Nacos MySQL defaults:
 
@@ -87,6 +90,34 @@ Full microservice stack in Docker:
 cd infra\nacos
 .\scripts\prepare-mysql-schema.ps1
 docker compose --profile microservices up -d --build
+```
+
+Test/debug microservice stack in Docker:
+
+```powershell
+cd infra\nacos
+.\scripts\prepare-mysql-schema.ps1
+docker compose -f docker-compose.yml -f docker-compose.test.yml --profile microservices up -d --build
+```
+
+The test/debug stack keeps the same container names and published ports as the default stack, but the services load `env/*.test.env`.
+Use it instead of the default stack, not at the same time.
+
+Test/debug environment differences:
+
+- `SPRING_PROFILES_ACTIVE=test`
+- business services use `travel_user_test`, `travel_destination_test`, and `travel_itinerary_test`
+- `JWT_SECRET` is shared by `user-service` and `gateway-service` for test tokens
+- `JWT_EXPIRE_SECONDS=3600`
+- `LOGGING_LEVEL_ORG_EXAMPLE=DEBUG`
+
+If `business-mysql` was already initialized before the test database script was added, create the test databases manually or reset local data.
+Manual SQL:
+
+```sql
+CREATE DATABASE IF NOT EXISTS travel_user_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS travel_destination_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS travel_itinerary_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 The `microservices` profile starts:
