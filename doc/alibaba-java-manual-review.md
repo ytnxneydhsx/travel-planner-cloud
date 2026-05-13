@@ -288,26 +288,26 @@
 - 本轮不处理该问题。
 - 如需回收弱默认值，后续再单独调整配置基线和本地启动说明。
 
-### 10. Feign 远程调用直接放在 Service 层，未单独封装
+### 10. 远程调用直接放在 Service 层，未单独封装
 
 当前状态：已完成
 
 问题描述：
 
-- `itinerary-service` 直接在 `ServiceImpl` 中发起 Feign 请求、判断结果、翻译异常。
+- `itinerary-service` 曾直接在 `ServiceImpl` 中发起远程请求、判断结果、翻译异常。
 - 当前没有单独的 `Manager` 层或远程调用包装层。
 
 涉及位置：
 
 - `itinerary-service/src/main/java/org/example/itineraryservice/service/impl/ItineraryServiceImpl.java:36`
 - `itinerary-service/src/main/java/org/example/itineraryservice/service/impl/ItineraryServiceImpl.java:156`
-- `itinerary-service/src/main/java/org/example/itineraryservice/client/DestinationClient.java:9`
+- `itinerary-service/src/main/java/org/example/itineraryservice/rpc/DestinationDubboClient.java`
 
 本次修复：
 
 - `itinerary-service` 已新增 `manager/DestinationManager`，统一封装目的地服务远程调用。
-- `DestinationManager` 负责调用 `DestinationClient`、判断返回值、翻译 `FeignException`，并对外提供“查得到返回对象、查不到返回空、必须存在则抛业务异常”的统一方法。
-- `ItineraryServiceImpl` 已移除直接 Feign 调用细节，收敛为纯业务编排和资源归属校验。
+- `DestinationManager` 负责调用 `DestinationDubboClient`、判断返回值、翻译远程调用异常，并对外提供“查得到返回对象、查不到返回空、必须存在则抛业务异常”的统一方法。
+- `ItineraryServiceImpl` 已移除直接远程调用细节，收敛为纯业务编排和资源归属校验。
 - `destination-service` 已补充批量查询接口，`itinerary-service` 在创建校验和行程详情回填时已改为批量远程调用，避免逐条请求下游服务。
 
 ## 仅供参考

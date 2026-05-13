@@ -80,7 +80,7 @@ itinerary-service
 
 ## 结构说明
 
-- `client`：通过 OpenFeign 调用 `destination-service`
+- `rpc`：通过 Dubbo 调用 `destination-service`
 - `manager`：封装远程调用、返回值判断和异常翻译
 - `controller`：对外提供 HTTP 接口
 - `dto`：请求和响应模型
