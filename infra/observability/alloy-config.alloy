@@ -1,38 +1,29 @@
-discovery.docker "containers" {
-  host = "unix:///var/run/docker.sock"
+local.file_match "travel_service_logs" {
+  path_targets = [
+    {
+      "__path__"       = "/var/log/travel-planner/*/app.log",
+      "job"            = "travel-planner-cloud",
+      "compose_project" = "nacos",
+      "platform"       = "file",
+    },
+  ]
+  sync_period = "10s"
 }
 
-discovery.relabel "docker_logs" {
-  targets = []
+discovery.relabel "travel_service_logs" {
+  targets = local.file_match.travel_service_logs.targets
 
   rule {
-    source_labels = ["__meta_docker_container_name"]
-    regex         = "/(.*)"
-    target_label  = "container"
-  }
-
-  rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    source_labels = ["__path__"]
+    regex         = "/var/log/travel-planner/([^/]+)/app\\.log"
     target_label  = "service"
-  }
-
-  rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
-    target_label  = "compose_project"
-  }
-
-  rule {
-    source_labels = ["__meta_docker_container_id"]
-    target_label  = "container_id"
+    replacement   = "$1"
   }
 }
 
-loki.source.docker "containers" {
-  host          = "unix:///var/run/docker.sock"
-  targets       = discovery.docker.containers.targets
-  labels        = {"platform" = "docker"}
-  relabel_rules = discovery.relabel.docker_logs.rules
-  forward_to    = [loki.write.local.receiver]
+loki.source.file "travel_service_logs" {
+  targets    = discovery.relabel.travel_service_logs.output
+  forward_to = [loki.write.local.receiver]
 }
 
 loki.write "local" {

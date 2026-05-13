@@ -1,5 +1,12 @@
 name: nacos
 
+x-service-logging-environment: &service-logging-environment
+  LOGGING_FILE_NAME: /app/logs/app.log
+  LOGGING_LOGBACK_ROLLINGPOLICY_MAX_FILE_SIZE: 10MB
+  LOGGING_LOGBACK_ROLLINGPOLICY_MAX_HISTORY: 7
+  LOGGING_LOGBACK_ROLLINGPOLICY_TOTAL_SIZE_CAP: 1GB
+  LOGGING_PATTERN_FILE: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [traceId=%X{traceId}] [requestId=%X{requestId}] %logger{36} - %msg%n"
+
 services:
   loki:
     profiles:
@@ -32,13 +39,13 @@ services:
     volumes:
       - ./observability/alloy-config.alloy:/etc/alloy/config.alloy:ro
       - ./observability/data/alloy:/var/lib/alloy/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./observability/logs:/var/log/travel-planner:ro
     restart: "no"
 
   grafana:
     profiles:
       - observability
-    image: grafana/grafana:12.2.1
+    image: ${GRAFANA_IMAGE:-grafana/grafana:12.2.1}
     container_name: travel-grafana
     depends_on:
       - loki
@@ -48,8 +55,11 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
       GF_USERS_DEFAULT_THEME: light
+      GF_USERS_DEFAULT_LANGUAGE: zh-Hans
     volumes:
       - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./observability/grafana/dashboards/travel-planner:/var/lib/grafana/dashboards/travel-planner:ro
       - ./observability/data/grafana:/var/lib/grafana
     restart: "no"
 
@@ -115,11 +125,16 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.spring-service
+      target: prebuilt
       args:
         SERVICE_MODULE: user-service
     container_name: travel-user-service
     env_file:
       - ./nacos/env/user-service.env
+    environment:
+      <<: *service-logging-environment
+    volumes:
+      - ./observability/logs/user-service:/app/logs
     depends_on:
       business-mysql:
         condition: service_healthy
@@ -133,11 +148,16 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.spring-service
+      target: prebuilt
       args:
         SERVICE_MODULE: destination-service
     container_name: travel-destination-service
     env_file:
       - ./nacos/env/destination-service.env
+    environment:
+      <<: *service-logging-environment
+    volumes:
+      - ./observability/logs/destination-service:/app/logs
     depends_on:
       business-mysql:
         condition: service_healthy
@@ -151,11 +171,16 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.spring-service
+      target: prebuilt
       args:
         SERVICE_MODULE: itinerary-service
     container_name: travel-itinerary-service
     env_file:
       - ./nacos/env/itinerary-service.env
+    environment:
+      <<: *service-logging-environment
+    volumes:
+      - ./observability/logs/itinerary-service:/app/logs
     depends_on:
       business-mysql:
         condition: service_healthy
@@ -169,11 +194,16 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.spring-service
+      target: prebuilt
       args:
         SERVICE_MODULE: gateway-service
     container_name: travel-gateway-service
     env_file:
       - ./nacos/env/gateway-service.env
+    environment:
+      <<: *service-logging-environment
+    volumes:
+      - ./observability/logs/gateway-service:/app/logs
     depends_on:
       nacos:
         condition: service_started
@@ -185,4 +215,21 @@ services:
         condition: service_started
     ports:
       - "${GATEWAY_SERVICE_PORT:-8080}:8080"
+    restart: "no"
+
+  frontend:
+    profiles:
+      - microservices
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${FRONTEND_API_BASE_URL:-http://localhost:18081}
+    image: travel-planner-frontend
+    container_name: travel-frontend
+    depends_on:
+      gateway-service:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-5173}:3000"
     restart: "no"

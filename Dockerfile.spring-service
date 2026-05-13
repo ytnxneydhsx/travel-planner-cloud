@@ -7,6 +7,20 @@ FROM ${MAVEN_IMAGE} AS build
 ARG SERVICE_MODULE
 WORKDIR /workspace
 
+RUN mkdir -p /root/.m2 && \
+    printf '%s\n' \
+      '<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">' \
+      '  <mirrors>' \
+      '    <mirror>' \
+      '      <id>aliyunmaven</id>' \
+      '      <mirrorOf>central</mirrorOf>' \
+      '      <name>Aliyun Maven Central Mirror</name>' \
+      '      <url>https://maven.aliyun.com/repository/central</url>' \
+      '    </mirror>' \
+      '  </mirrors>' \
+      '</settings>' \
+      > /root/.m2/settings.xml
+
 COPY pom.xml ./
 COPY common-rpc/pom.xml common-rpc/pom.xml
 COPY common-web/pom.xml common-web/pom.xml
@@ -14,8 +28,6 @@ COPY destination-service/pom.xml destination-service/pom.xml
 COPY gateway-service/pom.xml gateway-service/pom.xml
 COPY itinerary-service/pom.xml itinerary-service/pom.xml
 COPY user-service/pom.xml user-service/pom.xml
-
-RUN mvn -B -ntp -pl ${SERVICE_MODULE} -am dependency:go-offline
 
 COPY common-rpc/src common-rpc/src
 COPY common-web/src common-web/src
@@ -29,7 +41,15 @@ RUN mvn -B -ntp -pl ${SERVICE_MODULE} -am -DskipTests package && \
     test -n "${jar_file}" && \
     cp "${jar_file}" /workspace/app.jar
 
-FROM ${RUNTIME_IMAGE}
+FROM ${RUNTIME_IMAGE} AS prebuilt
+ARG SERVICE_MODULE
+WORKDIR /app
+
+COPY ${SERVICE_MODULE}/target/${SERVICE_MODULE}-0.0.1-SNAPSHOT.jar /app/app.jar
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+FROM ${RUNTIME_IMAGE} AS final
 WORKDIR /app
 
 COPY --from=build /workspace/app.jar /app/app.jar

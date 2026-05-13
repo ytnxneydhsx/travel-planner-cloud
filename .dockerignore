@@ -1,6 +1,6 @@
 .git
 .idea
-**/target
+**/target/*
+!**/target/*.jar
 infra/nacos/data
 infra/nacos/logs
-

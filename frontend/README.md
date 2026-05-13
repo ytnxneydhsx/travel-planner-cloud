@@ -17,22 +17,38 @@ Then run the frontend:
 ```powershell
 cd ..\..\frontend
 npm install
-npm run dev
+$env:VITE_API_BASE_URL="http://localhost:18081"
+npm run dev -- --port 5173
 ```
 
 Open:
 
 ```text
-http://localhost:3000
+http://localhost:5173
 ```
 
 The frontend points to:
 
 ```text
-VITE_API_BASE_URL=http://localhost:8080
+VITE_API_BASE_URL=http://localhost:18081
 ```
 
-That matches `gateway-service` in the Docker test/debug stack.
+## Docker
+
+The Docker Compose stack builds the frontend with Node and serves the built app through Vite preview.
+
+```powershell
+cd ..\infra
+docker compose --profile microservices up -d --build frontend
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+That matches the Dockerized `gateway-service` on `http://localhost:18081`.
 
 ## Seed Test Data
 
