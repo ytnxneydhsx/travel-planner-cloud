@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.example.common.web.BusinessException;
 import org.example.itineraryservice.client.dto.DestinationSummary;
 import org.example.itineraryservice.dto.ItineraryCreateRequest;
@@ -51,6 +52,11 @@ public class ItineraryServiceImpl implements ItineraryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ItineraryResponse create(Long currentUserId, ItineraryCreateRequest request) {
+        long startTime = System.nanoTime();
+        List<Long> destinationIds = request.getDestinationIds();
+        log.info("Create itinerary started: userId={}, title={}, destinationCount={}",
+                currentUserId, request.getTitle(), sizeOf(destinationIds));
+
         validateDestinationIds(request.getDestinationIds());
         validateDestinationsExist(request.getDestinationIds());
 
@@ -62,7 +68,6 @@ public class ItineraryServiceImpl implements ItineraryService {
 
         itineraryMapper.insert(itinerary);
 
-        List<Long> destinationIds = request.getDestinationIds();
         if (destinationIds != null) {
             for (int i = 0; i < destinationIds.size(); i++) {
                 Long destinationId = destinationIds.get(i);
@@ -74,7 +79,10 @@ public class ItineraryServiceImpl implements ItineraryService {
             }
         }
 
-        return getById(itinerary.getId(), currentUserId);
+        ItineraryResponse response = getById(itinerary.getId(), currentUserId);
+        log.info("Create itinerary completed: userId={}, itineraryId={}, destinationCount={}, durationMs={}",
+                currentUserId, itinerary.getId(), sizeOf(destinationIds), calculateDurationMillis(startTime));
+        return response;
     }
 
     @Override
@@ -114,6 +122,10 @@ public class ItineraryServiceImpl implements ItineraryService {
             Long itineraryId,
             Long currentUserId,
             ItineraryDestinationAddRequest request) {
+        long startTime = System.nanoTime();
+        log.info("Add destination to itinerary started: userId={}, itineraryId={}, destinationId={}",
+                currentUserId, itineraryId, request.getDestinationId());
+
         requireOwnedItinerary(itineraryId, currentUserId);
         ItineraryDestination existing = itineraryDestinationMapper.selectByItineraryIdAndDestinationId(
                 itineraryId,
@@ -139,7 +151,10 @@ public class ItineraryServiceImpl implements ItineraryService {
             throw new BusinessException(CONFLICT, "Destination already exists in itinerary.");
         }
 
-        return getById(itineraryId, currentUserId);
+        ItineraryResponse response = getById(itineraryId, currentUserId);
+        log.info("Add destination to itinerary completed: userId={}, itineraryId={}, destinationId={}, durationMs={}",
+                currentUserId, itineraryId, request.getDestinationId(), calculateDurationMillis(startTime));
+        return response;
     }
 
     @Override
@@ -234,5 +249,13 @@ public class ItineraryServiceImpl implements ItineraryService {
             throw new BusinessException(FORBIDDEN, "Forbidden.");
         }
         return itinerary;
+    }
+
+    private int sizeOf(List<?> values) {
+        return values == null ? 0 : values.size();
+    }
+
+    private long calculateDurationMillis(long startTime) {
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
     }
 }

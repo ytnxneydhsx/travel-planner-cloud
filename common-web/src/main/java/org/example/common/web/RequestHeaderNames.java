@@ -6,6 +6,8 @@ public final class RequestHeaderNames {
 
     public static final String TRACE_ID = "X-Trace-Id";
 
+    public static final String REQUEST_ID = "X-Request-Id";
+
     private RequestHeaderNames() {
     }
 }

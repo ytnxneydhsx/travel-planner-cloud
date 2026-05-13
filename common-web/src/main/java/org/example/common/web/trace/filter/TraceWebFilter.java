@@ -24,10 +24,12 @@ public class TraceWebFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        String traceId = resolveTraceId(request);
+        String traceId = resolveHeaderValue(request, RequestHeaderNames.TRACE_ID);
+        String requestId = resolveHeaderValue(request, RequestHeaderNames.REQUEST_ID);
 
-        TraceContext.bind(request, traceId);
+        TraceContext.bind(request, traceId, requestId);
         response.setHeader(RequestHeaderNames.TRACE_ID, traceId);
+        response.setHeader(RequestHeaderNames.REQUEST_ID, requestId);
         try {
             filterChain.doFilter(request, response);
         } finally {
@@ -35,10 +37,10 @@ public class TraceWebFilter extends OncePerRequestFilter {
         }
     }
 
-    private String resolveTraceId(HttpServletRequest request) {
-        String traceId = request.getHeader(RequestHeaderNames.TRACE_ID);
-        if (StringUtils.hasText(traceId)) {
-            return traceId;
+    private String resolveHeaderValue(HttpServletRequest request, String headerName) {
+        String headerValue = request.getHeader(headerName);
+        if (StringUtils.hasText(headerValue)) {
+            return headerValue;
         }
 
         return traceIdGenerator.generate();

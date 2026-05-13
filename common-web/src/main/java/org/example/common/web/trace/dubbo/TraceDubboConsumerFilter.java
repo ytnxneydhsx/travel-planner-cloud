@@ -21,6 +21,11 @@ public class TraceDubboConsumerFilter implements Filter {
             invocation.setAttachment(RequestHeaderNames.TRACE_ID, traceId);
         }
 
+        String requestId = TraceContext.getCurrentRequestId();
+        if (StringUtils.hasText(requestId)) {
+            invocation.setAttachment(RequestHeaderNames.REQUEST_ID, requestId);
+        }
+
         return invoker.invoke(invocation);
     }
 }

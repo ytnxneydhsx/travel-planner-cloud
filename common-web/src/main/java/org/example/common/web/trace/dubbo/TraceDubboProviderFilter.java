@@ -17,9 +17,10 @@ public class TraceDubboProviderFilter implements Filter {
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
         String traceId = invocation.getAttachment(RequestHeaderNames.TRACE_ID);
-        boolean traceBound = StringUtils.hasText(traceId);
+        String requestId = invocation.getAttachment(RequestHeaderNames.REQUEST_ID);
+        boolean traceBound = StringUtils.hasText(traceId) || StringUtils.hasText(requestId);
         if (traceBound) {
-            TraceContext.bindCurrentTraceId(traceId);
+            TraceContext.bindCurrent(traceId, requestId);
         }
 
         try {

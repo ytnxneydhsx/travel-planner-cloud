@@ -4,6 +4,8 @@ public final class TraceMdcKeys {
 
     public static final String TRACE_ID = "traceId";
 
+    public static final String REQUEST_ID = "requestId";
+
     private TraceMdcKeys() {
     }
 }

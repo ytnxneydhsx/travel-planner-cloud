@@ -6,6 +6,7 @@ import org.example.gatewayservice.security.authentication.AuthenticatedUser;
 import org.example.gatewayservice.security.authentication.AuthenticationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
@@ -50,32 +51,37 @@ public class GatewayAccessLogGlobalFilter implements GlobalFilter, Ordered {
     private void logCompletedRequest(ServerWebExchange exchange, long startTime) {
         HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
         int status = statusCode == null ? 0 : statusCode.value();
+        String traceId = resolveTraceId(exchange);
+        String requestId = resolveRequestId(exchange);
 
-        log.info(
+        withTraceMdc(traceId, requestId, () -> log.info(
                 "Gateway request completed: requestId={}, traceId={}, method={}, path={}, status={}, routeId={}, targetUri={}, userId={}, durationMs={}",
-                exchange.getRequest().getId(),
-                resolveTraceId(exchange),
+                requestId,
+                traceId,
                 exchange.getRequest().getMethod(),
                 exchange.getRequest().getPath().value(),
                 status,
                 resolveRouteId(exchange),
                 resolveTargetUri(exchange),
                 resolveUserId(exchange),
-                calculateDurationMillis(startTime));
+                calculateDurationMillis(startTime)));
     }
 
     private void logFailedRequest(ServerWebExchange exchange, long startTime, Throwable exception) {
-        log.error(
+        String traceId = resolveTraceId(exchange);
+        String requestId = resolveRequestId(exchange);
+
+        withTraceMdc(traceId, requestId, () -> log.error(
                 "Gateway request failed: requestId={}, traceId={}, method={}, path={}, routeId={}, targetUri={}, userId={}, durationMs={}",
-                exchange.getRequest().getId(),
-                resolveTraceId(exchange),
+                requestId,
+                traceId,
                 exchange.getRequest().getMethod(),
                 exchange.getRequest().getPath().value(),
                 resolveRouteId(exchange),
                 resolveTargetUri(exchange),
                 resolveUserId(exchange),
                 calculateDurationMillis(startTime),
-                exception);
+                exception));
     }
 
     private String resolveRouteId(ServerWebExchange exchange) {
@@ -118,6 +124,51 @@ public class GatewayAccessLogGlobalFilter implements GlobalFilter, Ordered {
         }
 
         return traceId;
+    }
+
+    private String resolveRequestId(ServerWebExchange exchange) {
+        String requestId = exchange.getAttribute(TraceContextConstants.REQUEST_ID_ATTRIBUTE);
+        if (StringUtils.hasText(requestId)) {
+            return requestId;
+        }
+
+        requestId = exchange.getRequest().getHeaders().getFirst(TraceContextConstants.REQUEST_ID_HEADER);
+        if (!StringUtils.hasText(requestId)) {
+            return UNKNOWN_VALUE;
+        }
+
+        return requestId;
+    }
+
+    private void withTraceMdc(String traceId, String requestId, Runnable logAction) {
+        String previousTraceId = MDC.get(TraceContextConstants.TRACE_ID_MDC_KEY);
+        String previousRequestId = MDC.get(TraceContextConstants.REQUEST_ID_MDC_KEY);
+        putMdcValue(TraceContextConstants.TRACE_ID_MDC_KEY, traceId);
+        putMdcValue(TraceContextConstants.REQUEST_ID_MDC_KEY, requestId);
+        try {
+            logAction.run();
+        } finally {
+            restoreMdcValue(TraceContextConstants.TRACE_ID_MDC_KEY, previousTraceId);
+            restoreMdcValue(TraceContextConstants.REQUEST_ID_MDC_KEY, previousRequestId);
+        }
+    }
+
+    private void putMdcValue(String key, String value) {
+        if (StringUtils.hasText(value) && !UNKNOWN_VALUE.equals(value)) {
+            MDC.put(key, value);
+            return;
+        }
+
+        MDC.remove(key);
+    }
+
+    private void restoreMdcValue(String key, String value) {
+        if (StringUtils.hasText(value)) {
+            MDC.put(key, value);
+            return;
+        }
+
+        MDC.remove(key);
     }
 
     private long calculateDurationMillis(long startTime) {
